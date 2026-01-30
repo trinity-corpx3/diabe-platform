@@ -22,8 +22,7 @@ services:
       - SNAPPDF_CHROMIUM_PATH=/usr/bin/chromium-browser
     restart: unless-stopped
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     volumes:
       - storage:/var/www/app/storage
 
