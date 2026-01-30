@@ -25,6 +25,8 @@ services:
       - db
     volumes:
       - storage:/var/www/app/storage
+    networks:
+      - app-network
 
   db:
     image: mysql:8.0
@@ -41,7 +43,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
 
 volumes:
   storage:
   mysql:
+
+networks:
+  app-network:
+    driver: bridge
