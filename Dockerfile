@@ -1,7 +1,13 @@
 FROM invoiceninja/invoiceninja:5
 
+# Switch to root to install nginx
+USER root
+
 # Install nginx
 RUN apk add --no-cache nginx
+
+# Create nginx directories
+RUN mkdir -p /run/nginx
 
 # Copy nginx configuration
 COPY <<EOF /etc/nginx/http.d/default.conf
@@ -25,7 +31,8 @@ server {
 EOF
 
 # Update supervisor to include nginx
-RUN echo "[program:nginx]" >> /etc/supervisord.conf && \
+RUN echo "" >> /etc/supervisord.conf && \
+    echo "[program:nginx]" >> /etc/supervisord.conf && \
     echo "command=nginx -g 'daemon off;'" >> /etc/supervisord.conf && \
     echo "autostart=true" >> /etc/supervisord.conf && \
     echo "autorestart=true" >> /etc/supervisord.conf && \
@@ -33,5 +40,8 @@ RUN echo "[program:nginx]" >> /etc/supervisord.conf && \
     echo "stdout_logfile_maxbytes=0" >> /etc/supervisord.conf && \
     echo "stderr_logfile=/dev/stderr" >> /etc/supervisord.conf && \
     echo "stderr_logfile_maxbytes=0" >> /etc/supervisord.conf
+
+# Switch back to invoiceninja user
+USER invoiceninja
 
 EXPOSE 80
