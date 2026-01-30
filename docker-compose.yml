@@ -22,7 +22,8 @@ services:
       - SNAPPDF_CHROMIUM_PATH=/usr/bin/chromium-browser
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - storage:/var/www/app/storage
 
@@ -36,6 +37,11 @@ services:
     volumes:
       - mysql:/var/lib/mysql
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   storage:
