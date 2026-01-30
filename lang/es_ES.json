@@ -1,0 +1,12 @@
+{
+    "project": "Obra",
+    "projects": "Obras",
+    "vendor": "Proveedor",
+    "vendors": "Base de Datos Proveedores",
+    "quote": "Presupuesto / Estimación",
+    "quotes": "Presupuestos",
+    "quote_number": "Número de Presupuesto",
+    "product": "Insumo",
+    "products": "Catálogo de Insumos",
+    "product_library": "Catálogo de Insumos"
+}
