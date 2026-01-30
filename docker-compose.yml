@@ -13,7 +13,7 @@ services:
       - APP_KEY=${APP_KEY}
       - APP_URL=${APP_URL}
       - REACT_URL=${REACT_URL}
-      - DB_HOST=db
+      - DB_HOST=${DB_HOST:-db}
       - DB_DATABASE=${DB_DATABASE:-ninja}
       - DB_USERNAME=${DB_USERNAME:-ninja}
       - DB_PASSWORD=${DB_PASSWORD}
