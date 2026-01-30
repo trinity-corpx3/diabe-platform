@@ -14,8 +14,14 @@ RUN mkdir -p /run/nginx && \
     mkdir -p /var/lib/nginx/tmp/uwsgi && \
     mkdir -p /var/lib/nginx/tmp/scgi && \
     mkdir -p /var/lib/nginx/logs && \
+    mkdir -p /var/log/nginx && \
     chown -R invoiceninja:invoiceninja /var/lib/nginx && \
+    chown -R invoiceninja:invoiceninja /var/log/nginx && \
     chown -R invoiceninja:invoiceninja /run/nginx
+
+# Configure nginx to use stdout/stderr for logs
+RUN sed -i 's|error_log.*|error_log /dev/stderr warn;|g' /etc/nginx/nginx.conf && \
+    sed -i 's|access_log.*|access_log /dev/stdout main;|g' /etc/nginx/nginx.conf
 
 # Copy nginx configuration
 COPY <<EOF /etc/nginx/http.d/default.conf
@@ -24,6 +30,9 @@ server {
     server_name _;
     root /var/www/app/public;
     index index.php;
+
+    access_log /dev/stdout;
+    error_log /dev/stderr;
 
     client_body_temp_path /var/lib/nginx/tmp/client_body;
     proxy_temp_path /var/lib/nginx/tmp/proxy;
