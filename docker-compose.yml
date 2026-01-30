@@ -25,7 +25,6 @@ services:
       - db
     volumes:
       - storage:/var/www/app/storage
-      - public:/var/www/app/public
 
   db:
     image: mysql:8.0
@@ -40,5 +39,4 @@ services:
 
 volumes:
   storage:
-  public:
   mysql:
