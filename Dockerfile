@@ -1,13 +1,21 @@
 FROM invoiceninja/invoiceninja:5
 
-# Switch to root to install nginx
+# Switch to root to install and configure nginx
 USER root
 
 # Install nginx
 RUN apk add --no-cache nginx
 
-# Create nginx directories
-RUN mkdir -p /run/nginx
+# Create nginx directories with proper permissions
+RUN mkdir -p /run/nginx && \
+    mkdir -p /var/lib/nginx/tmp/client_body && \
+    mkdir -p /var/lib/nginx/tmp/proxy && \
+    mkdir -p /var/lib/nginx/tmp/fastcgi && \
+    mkdir -p /var/lib/nginx/tmp/uwsgi && \
+    mkdir -p /var/lib/nginx/tmp/scgi && \
+    mkdir -p /var/lib/nginx/logs && \
+    chown -R invoiceninja:invoiceninja /var/lib/nginx && \
+    chown -R invoiceninja:invoiceninja /run/nginx
 
 # Copy nginx configuration
 COPY <<EOF /etc/nginx/http.d/default.conf
@@ -16,6 +24,12 @@ server {
     server_name _;
     root /var/www/app/public;
     index index.php;
+
+    client_body_temp_path /var/lib/nginx/tmp/client_body;
+    proxy_temp_path /var/lib/nginx/tmp/proxy;
+    fastcgi_temp_path /var/lib/nginx/tmp/fastcgi;
+    uwsgi_temp_path /var/lib/nginx/tmp/uwsgi;
+    scgi_temp_path /var/lib/nginx/tmp/scgi;
 
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
