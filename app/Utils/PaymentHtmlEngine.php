@@ -78,7 +78,7 @@ class PaymentHtmlEngine
         $data['$font_url'] = ['value' => Helpers::resolveFont($this->settings->primary_font)['url'], 'label' => ''];
         $data['$secondary_font_name'] = ['value' => Helpers::resolveFont($this->settings->secondary_font)['name'], 'label' => ''];
         $data['$secondary_font_url'] = ['value' => Helpers::resolveFont($this->settings->secondary_font)['url'], 'label' => ''];
-        $data['$invoiceninja.whitelabel'] = ['value' => 'https://invoicing.co/images/new_logo.png', 'label' => ''];
+        $data['$invoiceninja.whitelabel'] = ['value' => '', 'label' => ''];
         $data['$primary_color'] = ['value' => $this->settings->primary_color, 'label' => ''];
         $data['$secondary_color'] = ['value' => $this->settings->secondary_color, 'label' => ''];
 
@@ -174,7 +174,7 @@ class PaymentHtmlEngine
         $data['$viewButton'] = &$data['$view_link'];
         $data['$viewLink'] = &$data['$view_link'];
         $data['$paymentLink'] = &$data['$view_link'];
-        $data['$portalButton'] = ['value' =>  $this->buildViewButton($this->payment->getPortalLink(), ctrans('texts.login')), 'label' => ''];
+        $data['$portalButton'] = ['value' => $this->buildViewButton($this->payment->getPortalLink(), ctrans('texts.login')), 'label' => ''];
         $data['$portal_url'] = &$data['$portalButton'];
 
         $data['$view_url'] = ['value' => $this->payment->getLink(), 'label' => ctrans('texts.view_payment')];
@@ -206,7 +206,7 @@ class PaymentHtmlEngine
         $data['$history'] = ['value' => '', 'label' => ctrans('texts.history')];
 
         if ($this->payment->status_id == 4) {
-            $data['$status_logo'] = ['value' => '<div class="stamp is-paid"> ' . ctrans('texts.paid') .'</div>', 'label' => ''];
+            $data['$status_logo'] = ['value' => '<div class="stamp is-paid"> ' . ctrans('texts.paid') . '</div>', 'label' => ''];
         } else {
             $data['$status_logo'] = ['value' => '', 'label' => ''];
         }
@@ -243,7 +243,7 @@ class PaymentHtmlEngine
         $invoice = '';
 
         if ($this->payment->invoices()->exists()) {
-            $invoice = ctrans('texts.invoice_number_short').implode(',', $this->payment->invoices->pluck('number')->toArray());
+            $invoice = ctrans('texts.invoice_number_short') . implode(',', $this->payment->invoices->pluck('number')->toArray());
         }
 
         return $invoice;
@@ -254,7 +254,7 @@ class PaymentHtmlEngine
         $invoice = '';
 
         if ($this->payment->invoices()->exists()) {
-            $invoice = ctrans('texts.po_number_short').implode(',', $this->payment->invoices->pluck('po_number')->toArray());
+            $invoice = ctrans('texts.po_number_short') . implode(',', $this->payment->invoices->pluck('po_number')->toArray());
         }
 
         return $invoice;
@@ -265,7 +265,7 @@ class PaymentHtmlEngine
         $invoice_list = '<br><br>';
 
         foreach ($this->payment->invoices as $invoice) {
-            $invoice_list .= ctrans('texts.invoice_number_short')." {$invoice->number} ".Number::formatMoney($invoice->pivot->amount, $this->client).'<br>';
+            $invoice_list .= ctrans('texts.invoice_number_short') . " {$invoice->number} " . Number::formatMoney($invoice->pivot->amount, $this->client) . '<br>';
         }
 
         return $invoice_list;
@@ -277,12 +277,12 @@ class PaymentHtmlEngine
 
         foreach ($this->payment->invoices as $invoice) {
             if (strlen($invoice->po_number) > 1) {
-                $invoice_list .= ctrans('texts.po_number')." {$invoice->po_number} <br>";
+                $invoice_list .= ctrans('texts.po_number') . " {$invoice->po_number} <br>";
             }
 
-            $invoice_list .= ctrans('texts.invoice_number_short')." {$invoice->number} <br>";
-            $invoice_list .= ctrans('texts.invoice_amount').' '.Number::formatMoney($invoice->pivot->amount, $this->client).'<br>';
-            $invoice_list .= ctrans('texts.invoice_balance').' '.Number::formatMoney($invoice->fresh()->balance, $this->client).'<br>';
+            $invoice_list .= ctrans('texts.invoice_number_short') . " {$invoice->number} <br>";
+            $invoice_list .= ctrans('texts.invoice_amount') . ' ' . Number::formatMoney($invoice->pivot->amount, $this->client) . '<br>';
+            $invoice_list .= ctrans('texts.invoice_balance') . ' ' . Number::formatMoney($invoice->fresh()->balance, $this->client) . '<br>';
             $invoice_list .= '-----<br>';
         }
 
@@ -315,7 +315,7 @@ class PaymentHtmlEngine
 
         foreach ($values as $key => $value) {
             $data['values'][$key] = $value['value'];
-            $data['labels'][$key.'_label'] = $value['label'];
+            $data['labels'][$key . '_label'] = $value['label'];
         }
 
         return $data;
@@ -339,9 +339,9 @@ class PaymentHtmlEngine
         <![endif]-->        
         <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" >
         <tbody><tr>
-        <td align="center" class="new_button" style="border-radius: 2px; background-color: '.$this->settings->primary_color.'">
-            <a href="'. $link . '" target="_blank" class="new_button" style="text-decoration: none; border: 1px solid '.$this->settings->primary_color.'; display: inline-block; border-radius: 2px; padding-top: 15px; padding-bottom: 15px; padding-left: 25px; padding-right: 25px; font-size: 20px; color: #fff">
-            <singleline label="cta button">'. $text .'</singleline>
+        <td align="center" class="new_button" style="border-radius: 2px; background-color: ' . $this->settings->primary_color . '">
+            <a href="' . $link . '" target="_blank" class="new_button" style="text-decoration: none; border: 1px solid ' . $this->settings->primary_color . '; display: inline-block; border-radius: 2px; padding-top: 15px; padding-bottom: 15px; padding-left: 25px; padding-right: 25px; font-size: 20px; color: #fff">
+            <singleline label="cta button">' . $text . '</singleline>
             </a>
         </td>
         </tr>

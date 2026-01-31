@@ -752,7 +752,20 @@ class HtmlEngine
 
         //$data['$entity_footer'] = ['value' => $this->client->getSetting("{$this->entity_string}_footer"), 'label' => ''];
         $footer_content = Helpers::processReservedKeywords(\nl2br($this->entity->footer ?: ''), $this->client);
-        $footer_content = str_ireplace(['Created by Invoice Ninja', 'Creado por Invoice Ninja', 'Invoice Ninja'], '', $footer_content);
+        // Aggressively clean footer content of branding
+
+        // Remove "Created by" text variations and Invoice Ninja branding
+        $footer_content = preg_replace('/Created by\s+Invoice\s+Ninja/i', '', $footer_content);
+        $footer_content = preg_replace('/Creado por\s+Invoice\s+Ninja/i', '', $footer_content);
+        $footer_content = preg_replace('/Invoice\s+Ninja/i', '', $footer_content);
+
+        // Remove links to invoiceninja.com or invoicing.co
+        $footer_content = preg_replace('/<a\s+[^>]*href=["\']https?:\/\/(?:www\.)?(?:invoiceninja\.com|invoicing\.co)[^"\']*["\'][^>]*>.*?<\/a>/is', '', $footer_content);
+
+        // Remove images with invoiceninja in src or alt
+        $footer_content = preg_replace('/<img\s+[^>]*src=["\'][^"\']*invoiceninja[^"\']*["\'][^>]*>/is', '', $footer_content);
+        $footer_content = preg_replace('/<img\s+[^>]*alt=["\'][^"\']*Invoice\s+Ninja[^"\']*["\'][^>]*>/is', '', $footer_content);
+
         $data['$entity_footer'] = ['value' => $footer_content, 'label' => ''];
         $data['$footer'] = &$data['$entity_footer'];
 
