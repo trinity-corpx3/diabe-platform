@@ -53,6 +53,10 @@ server {
 }
 EOF
 
+# Copy custom views (must be done before switching user back or with correct ownership)
+COPY --chown=invoiceninja:invoiceninja resources/views /var/www/app/resources/views
+
+
 # Update supervisor to include nginx
 RUN echo "" >> /etc/supervisord.conf && \
     echo "[program:nginx]" >> /etc/supervisord.conf && \
