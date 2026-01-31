@@ -1,0 +1,1 @@
+import{j as x}from"./react-CDYlDoz2.js";import{c as a}from"./classnames-DrFJrL3Z.js";function i({variant:e,children:t,className:r,id:s,style:m}){return x.jsx("div",{id:s,className:a("flex justify-center items-center px-3 py-2 text-xs md:px-6 md:text-sm leading-6 text-gray-900",{"bg-orange-300":e==="orange","bg-red-300":e==="red"},r),style:m,children:t})}export{i as B};
