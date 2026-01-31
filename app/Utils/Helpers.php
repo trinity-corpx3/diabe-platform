@@ -25,7 +25,7 @@ class Helpers
 
     public static function sharedEmailVariables(?Client $client, ?array $settings = null): array
     {
-        if (! $client) {
+        if (!$client) {
             $elements['signature'] = '';
             $elements['settings'] = new stdClass();
             $elements['whitelabel'] = true;
@@ -38,7 +38,7 @@ class Helpers
 
         $elements['signature'] = $_settings->email_signature;
         $elements['settings'] = $_settings;
-        $elements['whitelabel'] = $client->company->account->isPaid() ? true : false;
+        $elements['whitelabel'] = true;
         $elements['company'] = $client->company;
 
         return $elements;
@@ -127,7 +127,7 @@ class Helpers
             return $custom_field_parts[0];
         }
 
-        $field = str_replace(["quote","credit"], ["invoice", "invoice"], $field);
+        $field = str_replace(["quote", "credit"], ["invoice", "invoice"], $field);
 
         if ($custom_fields && property_exists($custom_fields, $field)) {
             $custom_field = $custom_fields->{$field};
@@ -150,14 +150,14 @@ class Helpers
      */
     public static function processReservedKeywords(?string $value, $entity, $currentDateTime = null): ?string
     {
-        if (! $value) {
+        if (!$value) {
             return '';
         }
 
         // 04-10-2022 Return Early if no reserved keywords are present, this is a very expensive process
         $string_hit = false;
 
-        foreach ([':MONTH',':YEAR',':QUARTER',':WEEK', 'MONTHYEAR' ] as $string) {
+        foreach ([':MONTH', ':YEAR', ':QUARTER', ':WEEK', 'MONTHYEAR'] as $string) {
             if (stripos($value, $string) !== false) {
                 $string_hit = true;
                 break;
@@ -208,7 +208,7 @@ class Helpers
                 ),
                 ':MONTH' => Carbon::createFromDate($currentDateTime->year, $currentDateTime->month)->translatedFormat('F'),
                 ':YEAR' => $currentDateTime->year,
-                ':QUARTER' => 'Q'.$currentDateTime->quarter,
+                ':QUARTER' => 'Q' . $currentDateTime->quarter,
                 ':WEEK_BEFORE' => \sprintf(
                     '%s %s %s',
                     $currentDateTime->copy()->subDays(7)->translatedFormat($entity->date_format()),
@@ -249,7 +249,7 @@ class Helpers
         $matches = array_shift($ranges);
 
         foreach ($matches as $match) {
-            if (! Str::contains($match, '|')) {
+            if (!Str::contains($match, '|')) {
                 continue;
             }
 
@@ -260,7 +260,7 @@ class Helpers
             $right = substr($parts[1], 0, -1); // MONTH+2
 
             // If left side is not part of replacements, skip.
-            if (! array_key_exists($left, $replacements['ranges'])) {
+            if (!array_key_exists($left, $replacements['ranges'])) {
                 continue;
             }
 
@@ -268,7 +268,7 @@ class Helpers
             $_right = '';
 
             // If right side doesn't have any calculations, replace with raw ranges keyword.
-            if (! Str::contains(str_replace("</", "", $right), ['-', '+', '/', '*'])) {
+            if (!Str::contains(str_replace("</", "", $right), ['-', '+', '/', '*'])) {
                 $_right = Carbon::createFromDate($currentDateTime->year, $currentDateTime->month)->translatedFormat('F Y');
             }
 
@@ -280,7 +280,7 @@ class Helpers
 
                 $_value = explode($_operation, $right); // [MONTHYEAR, 4]
 
-                $_right = Carbon::createFromDate($currentDateTime->year, $currentDateTime->month)->addMonths((int)$_value[1])->translatedFormat('F Y'); //@phpstan-ignore-line
+                $_right = Carbon::createFromDate($currentDateTime->year, $currentDateTime->month)->addMonths((int) $_value[1])->translatedFormat('F Y'); //@phpstan-ignore-line
             }
 
             $replacement = sprintf('%s to %s', $_left, $_right);
@@ -308,7 +308,7 @@ class Helpers
                 continue;
             }
 
-            if (! Str::contains(str_replace("</", "", $match), ['-', '+', '/', '*'])) {
+            if (!Str::contains(str_replace("</", "", $match), ['-', '+', '/', '*'])) {
                 $value = preg_replace(
                     sprintf('/%s/', $matches->keys()->first()),
                     $replacements['literal'][$matches->keys()->first()],
@@ -374,7 +374,7 @@ class Helpers
                         $quarters_to_add = $output - $currentDateTime->quarter;
                         $final_date = $currentDateTime->copy();
                         if ($quarters_to_add != 0) {
-                            $final_date = $quarters_to_add > 0 
+                            $final_date = $quarters_to_add > 0
                                 ? $final_date->addQuarters($quarters_to_add)
                                 : $final_date->subQuarters(abs($quarters_to_add));
                         }
