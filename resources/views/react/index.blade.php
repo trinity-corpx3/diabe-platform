@@ -125,13 +125,36 @@
                             
                             // 2. Logic for Size (Compact Container -> Small Text, Large Container -> Large Text)
                             const parentRect = img.parentElement ? img.parentElement.getBoundingClientRect() : { width: 1000 };
-                            // Threshold: 300px. Sidebar is ~256px, Dropdowns are ~250px. Login is usually full width or >400px.
                             const isCompact = parentRect.width < 320; 
+
+                            // --- Company Dropdown Cleanup ---
+                            // If isCompact (Dropwdown), hide adjacent text nodes (often Company Name)
+                            if (isCompact) {
+                                // Usually the logo is inside a button or div, and next to it is the text.
+                                // We'll assume the text is a sibling or close by.
+                                const siblings = img.parentElement ? Array.from(img.parentElement.children) : [];
+                                siblings.forEach(sib => {
+                                    if (sib !== img && sib.innerText && sib.innerText.trim().length > 0) {
+                                       sib.style.display = 'none';
+                                    }
+                                    // Also checking for the specific classes mentioned by user: div.w-36.truncate.text-sm
+                                    if(sib.classList.contains('truncate') || sib.classList.contains('w-36')) {
+                                        sib.style.display = 'none';
+                                    }
+                                });
+                                
+                                // Also check parent's siblings if img is wrapped deep
+                                if (img.parentElement && img.parentElement.nextElementSibling) {
+                                    const nextSib = img.parentElement.nextElementSibling;
+                                     if(nextSib.classList.contains('truncate') || nextSib.classList.contains('w-36')) {
+                                        nextSib.style.display = 'none';
+                                    }
+                                }
+                            }
 
                             const container = document.createElement('div');
                             container.style.display = "flex";
                             container.style.alignItems = "center";
-                            // If compact (Sidebar/Dropdown), align start. Login centered.
                             container.style.justifyContent = isCompact ? "flex-start" : "center"; 
                             container.style.gap = isCompact ? "10px" : "15px";
                             container.style.marginBottom = isCompact ? "0px" : "24px";
@@ -154,8 +177,6 @@
 
                             // Text
                             const text = document.createElement('div');
-                            // If compact, keep text short if needed, but per request implies full name logic adjusted
-                            // We will keep "DIABE Platform" but scale it down
                             text.innerText = "DIABE Platform";
                             text.style.fontFamily = "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif";
                             
