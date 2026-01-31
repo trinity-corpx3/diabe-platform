@@ -73,9 +73,37 @@
                     document.head.appendChild(link);
                 }
                 link.type = 'image/svg+xml';
-                // SVG drawing resembling a swatchbook/book
                 link.href = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc. --><path fill="%2325a70c" d="M96 0C60.7 0 32 28.7 32 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64H96zM208 288h64c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16H144c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zM144 64h224c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>`;
             } catch (e) { console.log('Favicon update failed', e); }
+
+            // Helper to determine if background is dark
+            function isBackgroundDark(element) {
+                let current = element;
+                let depth = 0;
+                while (current && depth < 5) {
+                    if (current === document.body) break; // Don't check body if it's default white
+                    
+                    const style = window.getComputedStyle(current);
+                    const bgColor = style.backgroundColor;
+                    
+                    // Check if color is present (not rgba(0,0,0,0))
+                    if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
+                        // Parse RGB
+                        const rgb = bgColor.match(/\d+/g);
+                        if (rgb && rgb.length >= 3) {
+                            const r = parseInt(rgb[0]);
+                            const g = parseInt(rgb[1]);
+                            const b = parseInt(rgb[2]);
+                            // Calculate luminance (standard formula)
+                            const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+                            return luminance < 128; // < 128 is generally considered dark
+                        }
+                    }
+                    current = current.parentElement;
+                    depth++;
+                }
+                return false; // Default to light if no dark background found
+            }
 
             const observer = new MutationObserver(() => {
                 // 1. Replace Logo with DIABE Platform + Icon
@@ -94,56 +122,65 @@
                                 img.parentElement.style.color = 'inherit';
                             }
 
-                            // Context Detection: Robust check for Sidebar vs Login
-                            const rect = img.getBoundingClientRect();
-                            // Sidebar logo is usually small (< 250px width AND < 80px height)
-                            // AND distinctively on the left side (< 100px from left edge)
-                            const isSmall = (rect.width > 0 && rect.width < 250) || (rect.height > 0 && rect.height < 80);
-                            const isLeft = rect.left < 100; 
-                            const isSidebar = isSmall && isLeft;
-
-                            // Fallback: Check specific classes often used in sidebars
-                            const hasSidebarClass = img.closest('aside') || img.closest('.w-64') || img.closest('[class*="sidebar"]');
+                            // Smart Context Detection based on Background Luminance
+                            const isDarkBg = isBackgroundDark(img.parentElement);
                             
-                            const useSidebarStyle = isSidebar || hasSidebarClass;
+                            // Also consider size as a secondary check (Sidebar is usually constrained)
+                            const rect = img.getBoundingClientRect();
+                            const isSmallSpace = rect.width > 0 && rect.width < 250;
+
+                            // If background is dark OR space is small => Sidebar Style
+                            const useSidebarStyle = isDarkBg || isSmallSpace;
 
                             const container = document.createElement('div');
-                            // Flex container for Icon + Text
                             container.style.display = "flex";
                             container.style.alignItems = "center";
-                            container.style.justifyContent = useSidebarStyle ? "flex-start" : "center"; // Align left if sidebar
-                            container.style.gap = useSidebarStyle ? "8px" : "12px";
+                            // Sidebar: Stacked (Column) looks better usually, but let's stick to Row for now per user request context.
+                            // Actually, user said "CAMBIO DE TAMAÑO Y DE COLOR". 
+                            // Let's make Sidebar Compact Row.
+                            container.style.flexDirection = "row"; 
+                            container.style.justifyContent = useSidebarStyle ? "flex-start" : "center"; 
+                            container.style.gap = useSidebarStyle ? "10px" : "15px";
                             container.style.marginBottom = useSidebarStyle ? "0px" : "24px";
                             container.style.width = "100%";
                             container.style.cursor = "default";
                             
-                            // If sidebar, ensure some padding/margin to match original logo placement
                             if (useSidebarStyle) {
-                                container.style.paddingLeft = "0px"; 
+                                container.style.padding = "0px";
+                                // Ensure container doesn't overflow
+                                container.style.overflow = "hidden";
                             }
 
-                            // Icon: FontAwesome Swatchbook Beat-Fade Green
+                            // Icon
                             const icon = document.createElement('i');
                             icon.className = "fa-solid fa-swatchbook fa-beat-fade";
                             icon.style.color = "#25a70c";
-                            icon.style.fontSize = useSidebarStyle ? "24px" : "32px"; 
+                            icon.style.fontSize = useSidebarStyle ? "22px" : "36px"; 
                             icon.style.textDecoration = "none";
                             icon.style.border = "none";
+                            icon.style.flexShrink = "0"; // Don't squash icon
 
-                            // Text: DIABE Platform
+                            // Text
                             const text = document.createElement('div');
                             text.innerText = "DIABE Platform";
-                            
                             text.style.fontFamily = "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif";
-                            // Adapt size and color based on context
-                            text.style.fontSize = useSidebarStyle ? "20px" : "32px"; 
-                            text.style.fontWeight = "600";
-                            text.style.color = useSidebarStyle ? "#ffffff" : "#1f2937"; // White for sidebar, Dark for Login
+                            
+                            // STYLING LOGIC
+                            if (useSidebarStyle) {
+                                text.style.fontSize = "16px"; // Readable but small
+                                text.style.fontWeight = "500";
+                                text.style.color = "#FFFFFF"; // FORCE WHITE
+                                text.style.letterSpacing = "0.5px";
+                            } else {
+                                text.style.fontSize = "32px";
+                                text.style.fontWeight = "600";
+                                text.style.color = "#1f2937"; // Dark Grey
+                            }
                             
                             text.style.textDecoration = "none";
                             text.style.border = "none";
-                            text.style.lineHeight = "1"; 
-                            text.style.whiteSpace = "nowrap"; // Prevent wrapping in sidebar
+                            text.style.lineHeight = "1.2"; 
+                            text.style.whiteSpace = "nowrap";
 
                             container.appendChild(icon);
                             container.appendChild(text);
@@ -169,27 +206,24 @@
 
                     if (text === '2FA - One Time Password' || text === 'Secret') {
                         if (node.parentElement) {
-                            node.parentElement.style.display = 'none'; // The label
-                            // Try to hide the input following it
+                            node.parentElement.style.display = 'none'; 
                             const next = node.parentElement.nextElementSibling;
                             if (next) next.style.display = 'none';
                         }
                     }
                 }
 
-                // 3. Fallback cleanup for optional inputs
+                // 3. Fallback cleanup
                 const inputs = document.querySelectorAll('input[placeholder="(optional)"]');
                 inputs.forEach(input => {
                     input.style.display = 'none';
-                    if (input.previousElementSibling) input.previousElementSibling.style.display = 'none'; // Label
-                    if (input.nextElementSibling) input.nextElementSibling.style.display = 'none'; // Icon/Div
+                    if (input.previousElementSibling) input.previousElementSibling.style.display = 'none'; 
+                    if (input.nextElementSibling) input.nextElementSibling.style.display = 'none'; 
                     if (input.parentElement && input.parentElement.className.includes('input-group')) {
                         input.parentElement.style.display = 'none';
                     }
                 });
 
-                // 4. Specific cleanup for password toggles (eye icons) on hidden fields
-                // Find any password input that is hidden, and hide its siblings
                 const hiddenPw = document.querySelectorAll('input[type="password"][style*="none"]');
                 hiddenPw.forEach(inp => {
                     if (inp.nextElementSibling) inp.nextElementSibling.style.display = 'none';
@@ -205,11 +239,4 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
 </body>
-
-<!--
-  If you are reading this, there is a fair change that the react application has not loaded for you.
-  1. Download the release file from https://github.com/invoiceninja/invoiceninja and overwrite your current installation.
-  2. Switch back to the Flutter application by editing the database.
--->
-
 </html>
