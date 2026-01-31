@@ -81,28 +81,23 @@
                 let current = element;
                 let depth = 0;
                 while (current && depth < 5) {
-                    if (current === document.body) break; // Don't check body if it's default white
-                    
+                    if (current === document.body) break;
                     const style = window.getComputedStyle(current);
                     const bgColor = style.backgroundColor;
-                    
-                    // Check if color is present (not rgba(0,0,0,0))
                     if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
-                        // Parse RGB
                         const rgb = bgColor.match(/\d+/g);
                         if (rgb && rgb.length >= 3) {
                             const r = parseInt(rgb[0]);
                             const g = parseInt(rgb[1]);
                             const b = parseInt(rgb[2]);
-                            // Calculate luminance (standard formula)
                             const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
-                            return luminance < 128; // < 128 is generally considered dark
+                            return luminance < 128;
                         }
                     }
                     current = current.parentElement;
                     depth++;
                 }
-                return false; // Default to light if no dark background found
+                return false;
             }
 
             const observer = new MutationObserver(() => {
@@ -122,32 +117,29 @@
                                 img.parentElement.style.color = 'inherit';
                             }
 
-                            // Smart Context Detection based on Background Luminance
-                            const isDarkBg = isBackgroundDark(img.parentElement);
+                            // --- Smart Context Detection ---
                             
-                            // Also consider size as a secondary check (Sidebar is usually constrained)
-                            const rect = img.getBoundingClientRect();
-                            const isSmallSpace = rect.width > 0 && rect.width < 250;
-
-                            // If background is dark OR space is small => Sidebar Style
-                            const useSidebarStyle = isDarkBg || isSmallSpace;
+                            // 1. Logic for Color (Dark BG -> White Text, Light BG -> Dark Text)
+                            const isDarkBg = isBackgroundDark(img.parentElement);
+                            const textColor = isDarkBg ? "#FFFFFF" : "#1f2937";
+                            
+                            // 2. Logic for Size (Compact Container -> Small Text, Large Container -> Large Text)
+                            const parentRect = img.parentElement ? img.parentElement.getBoundingClientRect() : { width: 1000 };
+                            // Threshold: 300px. Sidebar is ~256px, Dropdowns are ~250px. Login is usually full width or >400px.
+                            const isCompact = parentRect.width < 320; 
 
                             const container = document.createElement('div');
                             container.style.display = "flex";
                             container.style.alignItems = "center";
-                            // Sidebar: Stacked (Column) looks better usually, but let's stick to Row for now per user request context.
-                            // Actually, user said "CAMBIO DE TAMAÑO Y DE COLOR". 
-                            // Let's make Sidebar Compact Row.
-                            container.style.flexDirection = "row"; 
-                            container.style.justifyContent = useSidebarStyle ? "flex-start" : "center"; 
-                            container.style.gap = useSidebarStyle ? "10px" : "15px";
-                            container.style.marginBottom = useSidebarStyle ? "0px" : "24px";
+                            // If compact (Sidebar/Dropdown), align start. Login centered.
+                            container.style.justifyContent = isCompact ? "flex-start" : "center"; 
+                            container.style.gap = isCompact ? "10px" : "15px";
+                            container.style.marginBottom = isCompact ? "0px" : "24px";
                             container.style.width = "100%";
                             container.style.cursor = "default";
                             
-                            if (useSidebarStyle) {
+                            if (isCompact) {
                                 container.style.padding = "0px";
-                                // Ensure container doesn't overflow
                                 container.style.overflow = "hidden";
                             }
 
@@ -155,27 +147,22 @@
                             const icon = document.createElement('i');
                             icon.className = "fa-solid fa-swatchbook fa-beat-fade";
                             icon.style.color = "#25a70c";
-                            icon.style.fontSize = useSidebarStyle ? "22px" : "36px"; 
+                            icon.style.fontSize = isCompact ? "22px" : "36px"; 
                             icon.style.textDecoration = "none";
                             icon.style.border = "none";
-                            icon.style.flexShrink = "0"; // Don't squash icon
+                            icon.style.flexShrink = "0";
 
                             // Text
                             const text = document.createElement('div');
+                            // If compact, keep text short if needed, but per request implies full name logic adjusted
+                            // We will keep "DIABE Platform" but scale it down
                             text.innerText = "DIABE Platform";
                             text.style.fontFamily = "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif";
                             
-                            // STYLING LOGIC
-                            if (useSidebarStyle) {
-                                text.style.fontSize = "16px"; // Readable but small
-                                text.style.fontWeight = "500";
-                                text.style.color = "#FFFFFF"; // FORCE WHITE
-                                text.style.letterSpacing = "0.5px";
-                            } else {
-                                text.style.fontSize = "32px";
-                                text.style.fontWeight = "600";
-                                text.style.color = "#1f2937"; // Dark Grey
-                            }
+                            // Apply Decoupled Styles
+                            text.style.color = textColor; // Based on Background
+                            text.style.fontSize = isCompact ? "18px" : "32px"; // Based on Width
+                            text.style.fontWeight = isCompact ? "500" : "600";
                             
                             text.style.textDecoration = "none";
                             text.style.border = "none";
