@@ -24,6 +24,7 @@ RUN sed -i 's|error_log.*|error_log /dev/stderr warn;|g' /etc/nginx/nginx.conf &
     sed -i 's|access_log.*|access_log /dev/stdout main;|g' /etc/nginx/nginx.conf
 
 # Copy nginx configuration
+# Copy nginx configuration
 COPY <<EOF /etc/nginx/http.d/default.conf
 server {
     listen 80;
@@ -44,6 +45,18 @@ server {
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
+    # Serve React assets from custom directory to bypass volume masking
+    location /react {
+        root /var/www/app/custom_public;
+        try_files \$uri \$uri/ =404;
+    }
+    
+    # Also serve other static assets if needed
+    location /images {
+        root /var/www/app/custom_public;
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
     location ~ \.php$ {
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
@@ -53,9 +66,11 @@ server {
 }
 EOF
 
-# Copy custom views (must be done before switching user back or with correct ownership)
+# Copy custom views
 COPY --chown=invoiceninja:invoiceninja resources/views /var/www/app/resources/views
-COPY --chown=invoiceninja:invoiceninja public /var/www/app/public
+
+# Copy public assets to custom directory to persist them in image
+COPY --chown=invoiceninja:invoiceninja public /var/www/app/custom_public
 
 
 # Update supervisor to include nginx
