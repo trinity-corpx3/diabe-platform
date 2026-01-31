@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html data-report-errors="{{ $report_errors }}" data-rc="{{ $rc }}" data-user-agent="{{ $user_agent }}" data-login="{{ $login }}" data-signup="{{ $signup }}" data-white-label="{{ $white_label }}" data-microsoft-client-id="{{ config('services.microsoft.client_id') }}">
+<html data-report-errors="{{ $report_errors }}" data-rc="{{ $rc }}" data-user-agent="{{ $user_agent }}"
+  data-login="{{ $login }}" data-signup="{{ $signup }}" data-white-label="{{ $white_label }}"
+  data-microsoft-client-id="{{ config('services.microsoft.client_id') }}">
+
 <head>
-    <!-- Source: https://github.com/invoiceninja/invoiceninja -->
-    <!-- Version: {{ config('ninja.app_version') }} -->
+  <!-- Source: https://github.com/invoiceninja/invoiceninja -->
+  <!-- Version: {{ config('ninja.app_version') }} -->
   <meta charset="UTF-8">
   <title>{{ $white_label ? "" : config('ninja.app_name')  }}</title>
   <meta name="google-signin-client_id" content="{{ config('services.google.client_id') }}">
@@ -11,32 +14,34 @@
 
   @if(config('services.microsoft.client_id'))
     <!-- Microsoft OAuth library -->
-    <script type="text/javascript" 
-      src="https://alcdn.msauth.net/browser/2.14.2/js/msal-browser.min.js"
-      integrity="sha384-ggh+EF1aSqm+Y4yvv2n17KpurNcZTeYUZUvhPziElsstmIEubyEB6AIVpKLuZgr"
-      crossorigin="anonymous">
-    </script>
+    <script type="text/javascript" src="https://alcdn.msauth.net/browser/2.14.2/js/msal-browser.min.js"
+      integrity="sha384-ggh+EF1aSqm+Y4yvv2n17KpurNcZTeYUZUvhPziElsstmIEubyEB6AIVpKLuZgr" crossorigin="anonymous">
+      </script>
   @endif
-  
+
   @if(\App\Utils\Ninja::isHosted())
 
-  <!-- Apple OAuth Library -->
-  <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
+    <!-- Apple OAuth Library -->
+    <script type="text/javascript"
+      src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
 
 
-  <!-- G Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-WMJ5W23');</script>
-  <!-- End G Tag Manager -->
+    <!-- G Tag Manager -->
+    <script>(function (w, d, s, l, i) {
+        w[l] = w[l] || []; w[l].push({
+          'gtm.start':
+            new Date().getTime(), event: 'gtm.js'
+        }); var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+            'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+      })(window, document, 'script', 'dataLayer', 'GTM-WMJ5W23');</script>
+    <!-- End G Tag Manager -->
 
   @endif
   <script type="text/javascript">
     pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('js/pdf.worker.min.js') }}";
   </script>
-   <script>
+  <script>
     window.flutterConfiguration = {
       @if(!\App\Utils\Ninja::isHosted())
         canvasKitBaseUrl: "{{ $canvas_path }}/canvaskit/"
@@ -44,23 +49,23 @@
     };
   </script>
 </head>
+
 <body style="background-color:#888888;">
 
   @if(\App\Utils\Ninja::isHosted())
     <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WMJ5W23"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WMJ5W23" height="0" width="0"
+        style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
   @endif
 
   <style>
-
     /* fix for blurry fonts 
     flt-glass-pane {
         image-rendering: pixelated;
     }
     */
-   
+
     /* https://projects.lukehaas.me/css-loaders/ */
     .loader,
     .loader:before,
@@ -73,6 +78,7 @@
       -webkit-animation: load7 1.8s infinite ease-in-out;
       animation: load7 1.8s infinite ease-in-out;
     }
+
     .loader {
       color: #ffffff;
       font-size: 10px;
@@ -85,46 +91,54 @@
       -webkit-animation-delay: -0.40s;
       animation-delay: -0.40s;
     }
+
     .loader:before,
     .loader:after {
       content: '';
       position: absolute;
       top: 0;
     }
+
     .loader:before {
       left: -3.5em;
       -webkit-animation-delay: -0.80s;
       animation-delay: -0.80s;
     }
+
     .loader:after {
       left: 3.5em;
     }
+
     @-webkit-keyframes load7 {
+
       0%,
       80%,
       100% {
         box-shadow: 0 2.5em 0 -1.3em;
       }
-      40% {
-        box-shadow: 0 2.5em 0 0;
-      }
-    }
-    @keyframes load7 {
-      0%,
-      80%,
-      100% {
-        box-shadow: 0 2.5em 0 -1.3em;
-      }
+
       40% {
         box-shadow: 0 2.5em 0 0;
       }
     }
 
+    @keyframes load7 {
+
+      0%,
+      80%,
+      100% {
+        box-shadow: 0 2.5em 0 -1.3em;
+      }
+
+      40% {
+        box-shadow: 0 2.5em 0 0;
+      }
+    }
   </style>
 
   <script>
     @if (request()->clear_local)
-      window.onload = function() {
+      window.onload = function () {
         window.localStorage.clear();
       }
     @endif
@@ -135,11 +149,11 @@
       });
     }
 
-    document.addEventListener('DOMContentLoaded', function(event) {
+    document.addEventListener('DOMContentLoaded', function (event) {
       document.getElementById('loader').style.display = 'none';
     });
 
-    
+
     function invokeServiceWorkerUpdateFlow() {
       // you have a better UI here, reloading is not a great user experince here.
       const confirmed = alert('New version of the app is available. Refresh now');
@@ -186,7 +200,7 @@
     }
 
     handleServiceWorker();
-  
+
   </script>
 
   <script defer src="{{ $path }}?v={{ config('ninja.app_version') }}" type="application/javascript"></script>
@@ -195,5 +209,116 @@
     <div class="loader"></div>
   </center>
 
+
+  <style>
+    @import url('https://fonts.cdnfonts.com/css/sf-pro-display');
+
+    /* Hide Invoice Ninja Branding - robust selectors */
+    img[src*="logo"],
+    img[alt*="Invoice Ninja"],
+    /* Flutter specific implementations often use background images or canvas, but let's try generic first */
+    .invoiceninja-logo {
+      display: none !important;
+    }
+
+    /* Hide 2FA and Secret Fields (Optional) */
+    input[placeholder="(optional)"] {
+      display: none !important;
+    }
+
+    /* Hide Labels for Optional Fields */
+    label:has(+ div > input[placeholder="(optional)"]),
+    label:has(+ input[placeholder="(optional)"]) {
+      display: none !important;
+    }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Continuous observer to handle dynamic Flutter/React rendering
+      const observer = new MutationObserver(() => {
+        // 1. Replace Logo with DIABE Platform
+        // Look for images that are likely the logo
+        const images = document.querySelectorAll('img');
+        images.forEach(img => {
+          const src = img.getAttribute('src');
+          const alt = img.getAttribute('alt');
+
+          // Check multiple conditions for the logo
+          if ((src && (src.includes('logo') || src.includes('invoiceninja'))) ||
+            (alt && alt.toLowerCase().includes('invoice ninja'))) {
+
+            if (!img.dataset.replaced) {
+              const title = document.createElement('div');
+              title.innerText = "DIABE Platform";
+              title.style.fontFamily = "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif";
+              title.style.fontSize = "32px";
+              title.style.fontWeight = "600";
+              title.style.textAlign = "center";
+              title.style.marginBottom = "24px";
+              title.style.color = "#1f2937";
+              title.style.width = "100%";
+              title.className = "diabe-branding";
+
+              // Insert before if parent exists
+              if (img.parentNode) {
+                img.parentNode.insertBefore(title, img);
+                img.style.display = 'none';
+                img.dataset.replaced = "true";
+              }
+            }
+          }
+        });
+
+        // 2. Hide "v Latest Build" and labels via Text Content
+        // This is expensive but necessary for canvas/dynamic rendering sometimes
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          const text = node.nodeValue.trim();
+
+          if (text.includes('v Latest Build') || text.includes('2026-01-26')) {
+            if (node.parentElement) node.parentElement.style.display = 'none';
+          }
+
+          // Hide 2FA labels
+          if (text === '2FA - One Time Password' || text === 'Secret') {
+            // Try to find the container to hide
+            if (node.parentElement) {
+              // Usually these are labels or spans above inputs
+              node.parentElement.style.display = 'none';
+              // Try to hide the following input if possible (best effort)
+              const next = node.parentElement.nextElementSibling;
+              if (next && (next.tagName === 'INPUT' || next.querySelector('input'))) {
+                next.style.display = 'none';
+              }
+            }
+          }
+        }
+
+        // 3. Fallback for inputs if labels weren't text nodes
+        const optionalInputs = document.querySelectorAll('input[placeholder="(optional)"]');
+        optionalInputs.forEach(input => {
+          input.style.display = 'none';
+          // Hide parent container if it looks like a wrapper
+          if (input.parentElement && input.parentElement.classList.contains('input-group')) {
+            input.parentElement.style.display = 'none';
+          }
+          // Hide previous sibling if it's a label (and not handled above)
+          let prev = input.previousElementSibling;
+          if (prev && (prev.tagName === 'LABEL' || prev.innerText.includes('2FA') || prev.innerText.includes('Secret'))) {
+            prev.style.display = 'none';
+          }
+          // If parent is a label wrapper
+          if (input.parentElement && input.parentElement.tagName === 'LABEL') {
+            input.parentElement.style.display = 'none';
+          }
+        });
+
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  </script>
 </body>
+
 </html>
