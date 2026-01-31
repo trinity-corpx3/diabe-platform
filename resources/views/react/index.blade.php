@@ -94,46 +94,56 @@
                                 img.parentElement.style.color = 'inherit';
                             }
 
-                            // Context Detection: Is this sidebar or login?
-                            // Invoice Ninja Sidebar images usually are smaller or inside 'aside' or specific containers.
-                            // We can use a simple heuristic: if the image height is small (< 50) or it's inside a dark container.
-                            // However, we can't easily check computed darker background before insertion.
-                            // Safer bet: Check if we are NOT on the login screen? No, SPA.
-                            // Check ancestry. The sidebar usually has class `w-64` or `aside`.
-                            const isSidebar = img.closest('aside') || img.closest('div[class*="sidebar"]') || img.height < 60;
+                            // Context Detection: Robust check for Sidebar vs Login
+                            const rect = img.getBoundingClientRect();
+                            // Sidebar logo is usually small (< 250px width AND < 80px height)
+                            // AND distinctively on the left side (< 100px from left edge)
+                            const isSmall = (rect.width > 0 && rect.width < 250) || (rect.height > 0 && rect.height < 80);
+                            const isLeft = rect.left < 100; 
+                            const isSidebar = isSmall && isLeft;
+
+                            // Fallback: Check specific classes often used in sidebars
+                            const hasSidebarClass = img.closest('aside') || img.closest('.w-64') || img.closest('[class*="sidebar"]');
+                            
+                            const useSidebarStyle = isSidebar || hasSidebarClass;
 
                             const container = document.createElement('div');
                             // Flex container for Icon + Text
                             container.style.display = "flex";
                             container.style.alignItems = "center";
-                            container.style.justifyContent = isSidebar ? "flex-start" : "center"; // Align left if sidebar
-                            container.style.gap = isSidebar ? "8px" : "12px";
-                            container.style.marginBottom = isSidebar ? "0px" : "24px";
+                            container.style.justifyContent = useSidebarStyle ? "flex-start" : "center"; // Align left if sidebar
+                            container.style.gap = useSidebarStyle ? "8px" : "12px";
+                            container.style.marginBottom = useSidebarStyle ? "0px" : "24px";
                             container.style.width = "100%";
                             container.style.cursor = "default";
+                            
+                            // If sidebar, ensure some padding/margin to match original logo placement
+                            if (useSidebarStyle) {
+                                container.style.paddingLeft = "0px"; 
+                            }
 
                             // Icon: FontAwesome Swatchbook Beat-Fade Green
                             const icon = document.createElement('i');
                             icon.className = "fa-solid fa-swatchbook fa-beat-fade";
                             icon.style.color = "#25a70c";
-                            icon.style.fontSize = isSidebar ? "20px" : "32px"; // Smaller icon for sidebar
+                            icon.style.fontSize = useSidebarStyle ? "24px" : "32px"; 
                             icon.style.textDecoration = "none";
                             icon.style.border = "none";
 
                             // Text: DIABE Platform
                             const text = document.createElement('div');
-                            text.innerText = isSidebar ? "DIABE" : "DIABE Platform"; // Shorten for sidebar if needed, or keep full
-                            if (isSidebar) text.innerText = "DIABE Platform";
-
+                            text.innerText = "DIABE Platform";
+                            
                             text.style.fontFamily = "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif";
                             // Adapt size and color based on context
-                            text.style.fontSize = isSidebar ? "18px" : "32px";
+                            text.style.fontSize = useSidebarStyle ? "20px" : "32px"; 
                             text.style.fontWeight = "600";
-                            text.style.color = isSidebar ? "#ffffff" : "#1f2937"; // White for sidebar, Dark for Login
-
+                            text.style.color = useSidebarStyle ? "#ffffff" : "#1f2937"; // White for sidebar, Dark for Login
+                            
                             text.style.textDecoration = "none";
                             text.style.border = "none";
-                            text.style.lineHeight = "1"; // Tighter line height
+                            text.style.lineHeight = "1"; 
+                            text.style.whiteSpace = "nowrap"; // Prevent wrapping in sidebar
 
                             container.appendChild(icon);
                             container.appendChild(text);
