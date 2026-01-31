@@ -128,22 +128,17 @@
                             const isCompact = parentRect.width < 320; 
 
                             // --- Company Dropdown Cleanup ---
-                            // If isCompact (Dropwdown), hide adjacent text nodes (often Company Name)
                             if (isCompact) {
-                                // Usually the logo is inside a button or div, and next to it is the text.
-                                // We'll assume the text is a sibling or close by.
                                 const siblings = img.parentElement ? Array.from(img.parentElement.children) : [];
                                 siblings.forEach(sib => {
                                     if (sib !== img && sib.innerText && sib.innerText.trim().length > 0) {
                                        sib.style.display = 'none';
                                     }
-                                    // Also checking for the specific classes mentioned by user: div.w-36.truncate.text-sm
                                     if(sib.classList.contains('truncate') || sib.classList.contains('w-36')) {
                                         sib.style.display = 'none';
                                     }
                                 });
                                 
-                                // Also check parent's siblings if img is wrapped deep
                                 if (img.parentElement && img.parentElement.nextElementSibling) {
                                     const nextSib = img.parentElement.nextElementSibling;
                                      if(nextSib.classList.contains('truncate') || nextSib.classList.contains('w-36')) {
@@ -218,6 +213,15 @@
                             const next = node.parentElement.nextElementSibling;
                             if (next) next.style.display = 'none';
                         }
+                    }
+                    
+                    // Hide "Compra Marca Blanca" or "Buy White Label" text nodes
+                    if (text.includes('Compra Marca Blanca') || text.includes('Buy White Label')) {
+                         if (node.parentElement) {
+                             // Hide the button container (often a button or a link)
+                             const btn = node.parentElement.closest('button') || node.parentElement.closest('a') || node.parentElement;
+                             if(btn) btn.style.display = 'none';
+                         }
                     }
                 }
 
