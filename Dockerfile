@@ -55,6 +55,7 @@ EOF
 
 # Copy custom views (must be done before switching user back or with correct ownership)
 COPY --chown=invoiceninja:invoiceninja resources/views /var/www/app/resources/views
+COPY --chown=invoiceninja:invoiceninja public /var/www/app/public
 
 
 # Update supervisor to include nginx
