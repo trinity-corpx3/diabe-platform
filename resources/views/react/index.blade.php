@@ -86,41 +86,54 @@
                     if (src && (src.includes('logo') || img.alt?.includes('Invoice Ninja'))) {
                         // Only replace if we haven't already
                         if (!img.dataset.replaced) {
-                            // Handle parent Anchor tag (remove link styling)
+                            // Handle parent Anchor tag
                             if (img.parentElement && img.parentElement.tagName === 'A') {
                                 img.parentElement.style.textDecoration = 'none';
-                                img.parentElement.style.pointerEvents = 'none'; // Disable click if desired, or just remove styling
+                                img.parentElement.style.pointerEvents = 'none';
                                 img.parentElement.style.cursor = 'default';
                                 img.parentElement.style.color = 'inherit';
                             }
+
+                            // Context Detection: Is this sidebar or login?
+                            // Invoice Ninja Sidebar images usually are smaller or inside 'aside' or specific containers.
+                            // We can use a simple heuristic: if the image height is small (< 50) or it's inside a dark container.
+                            // However, we can't easily check computed darker background before insertion.
+                            // Safer bet: Check if we are NOT on the login screen? No, SPA.
+                            // Check ancestry. The sidebar usually has class `w-64` or `aside`.
+                            const isSidebar = img.closest('aside') || img.closest('div[class*="sidebar"]') || img.height < 60;
 
                             const container = document.createElement('div');
                             // Flex container for Icon + Text
                             container.style.display = "flex";
                             container.style.alignItems = "center";
-                            container.style.justifyContent = "center";
-                            container.style.gap = "12px";
-                            container.style.marginBottom = "24px";
+                            container.style.justifyContent = isSidebar ? "flex-start" : "center"; // Align left if sidebar
+                            container.style.gap = isSidebar ? "8px" : "12px";
+                            container.style.marginBottom = isSidebar ? "0px" : "24px";
                             container.style.width = "100%";
-                            container.style.cursor = "default"; // Ensure cursor doesn't look like a link
+                            container.style.cursor = "default";
 
                             // Icon: FontAwesome Swatchbook Beat-Fade Green
                             const icon = document.createElement('i');
                             icon.className = "fa-solid fa-swatchbook fa-beat-fade";
                             icon.style.color = "#25a70c";
-                            icon.style.fontSize = "32px"; // Match text size roughly
+                            icon.style.fontSize = isSidebar ? "20px" : "32px"; // Smaller icon for sidebar
                             icon.style.textDecoration = "none";
                             icon.style.border = "none";
 
                             // Text: DIABE Platform
                             const text = document.createElement('div');
-                            text.innerText = "DIABE Platform";
+                            text.innerText = isSidebar ? "DIABE" : "DIABE Platform"; // Shorten for sidebar if needed, or keep full
+                            if (isSidebar) text.innerText = "DIABE Platform";
+
                             text.style.fontFamily = "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif";
-                            text.style.fontSize = "32px";
+                            // Adapt size and color based on context
+                            text.style.fontSize = isSidebar ? "18px" : "32px";
                             text.style.fontWeight = "600";
-                            text.style.color = "#1f2937";
+                            text.style.color = isSidebar ? "#ffffff" : "#1f2937"; // White for sidebar, Dark for Login
+
                             text.style.textDecoration = "none";
                             text.style.border = "none";
+                            text.style.lineHeight = "1"; // Tighter line height
 
                             container.appendChild(icon);
                             container.appendChild(text);
