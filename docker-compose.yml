@@ -23,6 +23,8 @@ services:
       - DB_PORT=3306
       - PDF_GENERATOR=snappdf
       - SNAPPDF_CHROMIUM_PATH=/usr/bin/chromium-browser
+      - HTTPS=false
+      - TRUSTED_PROXIES=*
     restart: unless-stopped
     depends_on:
       - db
