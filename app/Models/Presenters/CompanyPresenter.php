@@ -58,6 +58,12 @@ class CompanyPresenter extends EntityPresenter
         $logo = Storage::get("{$this->company_key}/{$basename}");
 
         if (!$logo) {
+            // [FIX] Check for custom DIABE logo in Docker
+            $diabePath = base_path('custom_public/images/diabe_logo.jpg');
+            if (file_exists($diabePath)) {
+                return "data:image/png;base64," . base64_encode(file_get_contents($diabePath));
+            }
+
             return $this->logo($settings);
         }
 
