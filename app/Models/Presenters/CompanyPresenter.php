@@ -42,7 +42,7 @@ class CompanyPresenter extends EntityPresenter
         } elseif (strlen($settings->company_logo) >= 1) {
             return url('') . $settings->company_logo;
         } else {
-            return asset('images/blank.png');
+            return asset('images/diabe_logo.jpg');
         }
     }
 
@@ -89,6 +89,12 @@ class CompanyPresenter extends EntityPresenter
         } elseif (strlen($settings->company_logo) >= 1) {
             return "data:image/png;base64," . base64_encode(@file_get_contents(url('') . $settings->company_logo, false, stream_context_create($context_options)));
         } else {
+            // Fallback to DIABE Logo
+            $logoPath = public_path('images/diabe_logo.jpg');
+            if (file_exists($logoPath)) {
+                return "data:image/png;base64," . base64_encode(file_get_contents($logoPath));
+            }
+            // Transparent pixel if even DIABE logo is missing
             return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==";
         }
     }
