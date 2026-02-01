@@ -709,7 +709,7 @@ class Company extends BaseModel
                 $query->where('company_id', $this->id)
                     ->orWhere('company_id', null);
             })
-            ->where('name', 'Business');
+            ->where('id', 5);
     }
 
     public function user_designs()

@@ -363,7 +363,7 @@ class BaseController extends Controller
                     }
                 },
                 'company.designs' => function ($query) use ($updated_at, $user) {
-                    $query->where('updated_at', '>=', $updated_at)->where('name', 'Business')->with('company');
+                    $query->where('updated_at', '>=', $updated_at)->where('id', 5)->with('company');
 
                     if (!$user->isAdmin()) {
                         $query->where('designs.user_id', $user->id);
@@ -598,7 +598,7 @@ class BaseController extends Controller
                     $query->whereNotNull('created_at')->with('documents', 'users');
                 },
                 'company.designs' => function ($query) use ($created_at) {
-                    $query->where('created_at', '>=', $created_at)->where('name', 'Business')->with('company');
+                    $query->where('created_at', '>=', $created_at)->where('id', 5)->with('company');
                 },
                 'company.documents' => function ($query) use ($created_at) {
                     $query->where('created_at', '>=', $created_at);
@@ -710,7 +710,7 @@ class BaseController extends Controller
                     $query->whereNotNull('created_at')->with('documents', 'users');
                 },
                 'company.designs' => function ($query) use ($created_at) {
-                    $query->where('created_at', '>=', $created_at)->where('name', 'Business')->with('company');
+                    $query->where('created_at', '>=', $created_at)->where('id', 5)->with('company');
                 },
                 'company.clients' => function ($query) use ($created_at, $user) {
                     $query->where('clients.created_at', '>=', $created_at)->with('contacts.company', 'gateway_tokens', 'documents');
