@@ -64,7 +64,8 @@ class CompanyPresenter extends EntityPresenter
                 return "data:image/jpeg;base64," . base64_encode(file_get_contents($diabePath));
             }
 
-            return $this->logo($settings);
+            // Standard transparent pixel
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
         }
 
         return "data:image/png;base64, " . base64_encode($logo);
@@ -105,8 +106,8 @@ class CompanyPresenter extends EntityPresenter
             if (file_exists($logoPath)) {
                 return "data:image/jpeg;base64," . base64_encode(file_get_contents($logoPath));
             }
-            // Transparent pixel if even DIABE logo is missing
-            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQ42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==";
+            // Standard transparent pixel
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
         }
     }
 
