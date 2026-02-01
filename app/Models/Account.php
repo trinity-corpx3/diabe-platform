@@ -274,13 +274,12 @@ class Account extends BaseModel
 
             // White Label
             case self::FEATURE_WHITE_LABEL:
-                if (!$self_host && $plan_details && !$plan_details['expires']) {
-                    return false;
-                }
+                return true;
+
             // Fallthrough
             // no break
             case self::FEATURE_REMOVE_CREATED_BY:
-                return !empty($plan_details); // A plan is required even for self-hosted users
+                return true; // !empty($plan_details); // A plan is required even for self-hosted users
 
             // Enterprise; No Trial allowed; grandfathered for old pro users
             case self::FEATURE_USERS: // Grandfathered for old Pro users
