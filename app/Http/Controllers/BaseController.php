@@ -709,6 +709,9 @@ class BaseController extends Controller
                 'company' => function ($query) {
                     $query->whereNotNull('created_at')->with('documents', 'users');
                 },
+                'company.designs' => function ($query) use ($created_at) {
+                    $query->where('created_at', '>=', $created_at)->where('name', 'Business')->with('company');
+                },
                 'company.clients' => function ($query) use ($created_at, $user) {
                     $query->where('clients.created_at', '>=', $created_at)->with('contacts.company', 'gateway_tokens', 'documents');
 
