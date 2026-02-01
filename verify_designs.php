@@ -1,38 +1,38 @@
 <?php
 
-use App\Models\Design;
-use App\Models\Company;
-
 require __DIR__ . '/vendor/autoload.php';
 $app = require_once __DIR__ . '/bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-echo "Verifying Design Filtering...\n";
+use App\Models\Design;
+use App\Models\Company;
 
-// Test 1: Design::all() (should be unaffected by controller logic, but affected by global scopes if any)
-$all = Design::count();
-echo "Total Designs in DB: $all\n";
+echo "\n--- VERIFICATION OF DESIGN FILTERING ---\n";
 
-// Test 2: Simulate DesignController index with id=5
-$filtered = Design::where('id', 5)->get();
-echo "Designs with ID 5: " . $filtered->count() . "\n";
-foreach ($filtered as $d) {
-    echo " - " . $d->name . " (ID: " . $d->id . ")\n";
+// 1. Check Database State
+$total = Design::count(); // Count of non-deleted designs
+$business = Design::where('id', 5)->first();
+$others = Design::where('id', '!=', 5)->count();
+
+echo "Total Active Designs in DB: $total\n";
+echo "Business Design (ID 5): " . ($business ? "EXISTS" : "MISSING") . "\n";
+echo "Other Designs Count: $others (Should be 0 if migration ran)\n";
+
+if ($others > 0) {
+    echo "WARNING: Migration has NOT successfully soft-deleted other designs yet.\n";
+} else {
+    echo "SUCCESS: Only 'Business' design remains active in the database.\n";
 }
 
-// Test 3: Simulate BaseController eager load
+// 2. Check Company Relationship
 $company = Company::first();
 if ($company) {
-    echo "Checking Company (ID: " . $company->id . ") relations...\n";
-    // We can't easily invoke the closure from controller, but we can replicate the logic
-    // The relation 'designs' in Company.php has 'where('id', 5)' modded by me?
-    // Let's check what $company->designs returns naturally
-    $companyDesigns = $company->designs;
-    echo "Company->designs count: " . $companyDesigns->count() . "\n";
-    foreach ($companyDesigns as $d) {
+    echo "\nChecking Company->designs relationship...\n";
+    $relDesigns = $company->designs;
+    echo "Count: " . $relDesigns->count() . "\n";
+    foreach ($relDesigns as $d) {
         echo " - " . $d->name . " (ID: " . $d->id . ")\n";
     }
-} else {
-    echo "No company found.\n";
 }
+echo "\n----------------------------------------\n";
