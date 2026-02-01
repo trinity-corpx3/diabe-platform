@@ -59,16 +59,23 @@ class CompanyPresenter extends EntityPresenter
 
         if (!$logo) {
             // [FIX] Check for custom DIABE logo in Docker
-            $diabePath = base_path('custom_public/images/diabe_logo.jpg');
-            if (file_exists($diabePath)) {
-                return "data:image/jpeg;base64," . base64_encode(file_get_contents($diabePath));
+            $paths = [
+                base_path('custom_public/images/diabe_logo.jpg'),
+                public_path('images/diabe_logo.jpg'),
+                base_path('public/images/diabe_logo.jpg'),
+            ];
+
+            foreach ($paths as $diabePath) {
+                if (file_exists($diabePath)) {
+                    return "data:image/jpeg;base64," . base64_encode(file_get_contents($diabePath));
+                }
             }
 
-            // Standard transparent pixel
+            // Standard transparent pixel (No space after comma)
             return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
         }
 
-        return "data:image/png;base64, " . base64_encode($logo);
+        return "data:image/png;base64," . base64_encode($logo);
     }
 
     /**
