@@ -561,7 +561,7 @@ class PdfMock
                     '$refund' => '',
                     '$refunded' => '',
                     '$phone' => '&nbsp;',
-                    '$terms' => 'Default company invoice terms',
+                    '$terms' => '',
                     '$from' => 'Bob Jones',
                     '$item' => '',
                     '$date' => '2023-10-25',
