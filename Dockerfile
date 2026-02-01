@@ -69,6 +69,10 @@ EOF
 # Copy custom views
 COPY --chown=invoiceninja:invoiceninja resources/views /var/www/app/resources/views
 
+# Copy custom app logic
+COPY --chown=invoiceninja:invoiceninja app /var/www/app/app
+COPY --chown=invoiceninja:invoiceninja verify_whitelabel.php /var/www/app/verify_whitelabel.php
+
 # Copy public assets to custom directory to persist them in image
 COPY --chown=invoiceninja:invoiceninja public /var/www/app/custom_public
 
