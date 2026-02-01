@@ -279,7 +279,7 @@ class Account extends BaseModel
             // Fallthrough
             // no break
             case self::FEATURE_REMOVE_CREATED_BY:
-                return true; // !empty($plan_details); // A plan is required even for self-hosted users
+                return true;
 
             // Enterprise; No Trial allowed; grandfathered for old pro users
             case self::FEATURE_USERS: // Grandfathered for old Pro users
