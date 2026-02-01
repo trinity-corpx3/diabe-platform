@@ -105,58 +105,58 @@ class BaseController extends Controller
      * An array of includes to be loaded by default.
      */
     private $first_load = [
-          'account',
-          'user.company_user',
-          'token.company_user',
-          'company.activities',
-          'company.designs.company',
-          'company.task_statuses',
-          'company.expense_categories',
-          'company.documents',
-          'company.users.company_user',
-          'company.clients.contacts.company',
-          'company.clients.gateway_tokens',
-          'company.clients.documents',
-          'company.company_gateways.gateway',
-          'company.credits.invitations.contact',
-          'company.credits.invitations.company',
-          'company.credits.documents',
-          'company.expenses.documents',
-          'company.groups.documents',
-          'company.invoices.invitations.contact',
-          'company.invoices.invitations.company',
-          'company.purchase_orders.invitations',
-          'company.invoices.documents',
-          'company.products',
-          'company.products.documents',
-          'company.payments.paymentables',
-          'company.payments.documents',
-          'company.purchase_orders.documents',
-          'company.payment_terms.company',
-          'company.projects.documents',
-          'company.recurring_expenses',
-          'company.recurring_invoices',
-          'company.recurring_invoices.invitations.contact',
-          'company.recurring_invoices.invitations.company',
-          'company.recurring_invoices.documents',
-          'company.quotes.invitations.contact',
-          'company.quotes.invitations.company',
-          'company.quotes.documents',
-          'company.tasks.documents',
+        'account',
+        'user.company_user',
+        'token.company_user',
+        'company.activities',
+        'company.designs.company',
+        'company.task_statuses',
+        'company.expense_categories',
+        'company.documents',
+        'company.users.company_user',
+        'company.clients.contacts.company',
+        'company.clients.gateway_tokens',
+        'company.clients.documents',
+        'company.company_gateways.gateway',
+        'company.credits.invitations.contact',
+        'company.credits.invitations.company',
+        'company.credits.documents',
+        'company.expenses.documents',
+        'company.groups.documents',
+        'company.invoices.invitations.contact',
+        'company.invoices.invitations.company',
+        'company.purchase_orders.invitations',
+        'company.invoices.documents',
+        'company.products',
+        'company.products.documents',
+        'company.payments.paymentables',
+        'company.payments.documents',
+        'company.purchase_orders.documents',
+        'company.payment_terms.company',
+        'company.projects.documents',
+        'company.recurring_expenses',
+        'company.recurring_invoices',
+        'company.recurring_invoices.invitations.contact',
+        'company.recurring_invoices.invitations.company',
+        'company.recurring_invoices.documents',
+        'company.quotes.invitations.contact',
+        'company.quotes.invitations.company',
+        'company.quotes.documents',
+        'company.tasks.documents',
         //   'company.tasks.project',
-          'company.subscriptions',
-          'company.tax_rates',
-          'company.tokens_hashed',
-          'company.vendors.contacts.company',
-          'company.vendors.documents',
-          'company.webhooks',
-          'company.system_logs',
-          'company.bank_integrations',
-          'company.bank_transactions',
-          'company.bank_transaction_rules',
-          'company.task_schedulers',
-          'company.locations',
-        ];
+        'company.subscriptions',
+        'company.tax_rates',
+        'company.tokens_hashed',
+        'company.vendors.contacts.company',
+        'company.vendors.documents',
+        'company.webhooks',
+        'company.system_logs',
+        'company.bank_integrations',
+        'company.bank_transactions',
+        'company.bank_transaction_rules',
+        'company.task_schedulers',
+        'company.locations',
+    ];
 
     /**
      * An array of includes to be loaded by default
@@ -231,8 +231,8 @@ class BaseController extends Controller
     public function notFound()
     {
         return response()->json(['message' => ctrans('texts.api_404')], 404)
-                         ->header('X-API-VERSION', config('ninja.minimum_client_version'))
-                         ->header('X-APP-VERSION', config('ninja.app_version'));
+            ->header('X-API-VERSION', config('ninja.minimum_client_version'))
+            ->header('X-APP-VERSION', config('ninja.app_version'));
     }
 
     /**
@@ -336,7 +336,7 @@ class BaseController extends Controller
                 'company.clients' => function ($query) use ($updated_at, $user) {
                     $query->where('clients.updated_at', '>=', $updated_at)->with('contacts.company', 'gateway_tokens', 'documents');
 
-                    if (! $user->hasPermission('view_client')) {
+                    if (!$user->hasPermission('view_client')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('clients.user_id', $user->id)->orWhere('clients.assigned_user_id', $user->id);
                         });
@@ -349,14 +349,14 @@ class BaseController extends Controller
                 'company.company_gateways' => function ($query) use ($user) {
                     $query->whereNotNull('updated_at')->with('gateway');
 
-                    if (! $user->isAdmin()) {
+                    if (!$user->isAdmin()) {
                         $query->where('company_gateways.user_id', $user->id);
                     }
                 },
                 'company.credits' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('invitations', 'documents');
 
-                    if (! $user->hasPermission('view_credit')) {
+                    if (!$user->hasPermission('view_credit')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('credits.user_id', $user->id)->orWhere('credits.assigned_user_id', $user->id);
                         });
@@ -365,7 +365,7 @@ class BaseController extends Controller
                 'company.designs' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('company');
 
-                    if (! $user->isAdmin()) {
+                    if (!$user->isAdmin()) {
                         $query->where('designs.user_id', $user->id);
                     }
                 },
@@ -375,7 +375,7 @@ class BaseController extends Controller
                 'company.expenses' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('documents');
 
-                    if (! $user->hasPermission('view_expense')) {
+                    if (!$user->hasPermission('view_expense')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('expenses.user_id', $user->id)->orWhere('expenses.assigned_user_id', $user->id);
                         });
@@ -387,7 +387,7 @@ class BaseController extends Controller
                 'company.invoices' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('invitations', 'documents');
 
-                    if (! $user->hasPermission('view_invoice')) {
+                    if (!$user->hasPermission('view_invoice')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('invoices.user_id', $user->id)->orWhere('invoices.assigned_user_id', $user->id);
                         });
@@ -396,7 +396,7 @@ class BaseController extends Controller
                 'company.payments' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('paymentables', 'documents');
 
-                    if (! $user->hasPermission('view_payment')) {
+                    if (!$user->hasPermission('view_payment')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('payments.user_id', $user->id)->orWhere('payments.assigned_user_id', $user->id);
                         });
@@ -405,14 +405,14 @@ class BaseController extends Controller
                 'company.payment_terms' => function ($query) use ($user) {
                     $query->whereNotNull('updated_at');
 
-                    if (! $user->isAdmin()) {
+                    if (!$user->isAdmin()) {
                         $query->where('payment_terms.user_id', $user->id);
                     }
                 },
                 'company.products' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('documents');
 
-                    if (! $user->hasPermission('view_product')) {
+                    if (!$user->hasPermission('view_product')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('products.user_id', $user->id)->orWhere('products.assigned_user_id', $user->id);
                         });
@@ -421,7 +421,7 @@ class BaseController extends Controller
                 'company.projects' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('documents');
 
-                    if (! $user->hasPermission('view_project')) {
+                    if (!$user->hasPermission('view_project')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('projects.user_id', $user->id)->orWhere('projects.assigned_user_id', $user->id);
                         });
@@ -430,7 +430,7 @@ class BaseController extends Controller
                 'company.purchase_orders' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('documents');
 
-                    if (! $user->hasPermission('view_purchase_order')) {
+                    if (!$user->hasPermission('view_purchase_order')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('purchase_orders.user_id', $user->id)->orWhere('purchase_orders.assigned_user_id', $user->id);
                         });
@@ -439,7 +439,7 @@ class BaseController extends Controller
                 'company.quotes' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('invitations', 'documents');
 
-                    if (! $user->hasPermission('view_quote')) {
+                    if (!$user->hasPermission('view_quote')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('quotes.user_id', $user->id)->orWhere('quotes.assigned_user_id', $user->id);
                         });
@@ -448,7 +448,7 @@ class BaseController extends Controller
                 'company.recurring_invoices' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('invitations', 'documents', 'client.gateway_tokens', 'client.group_settings', 'client.company');
 
-                    if (! $user->hasPermission('view_recurring_invoice')) {
+                    if (!$user->hasPermission('view_recurring_invoice')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('recurring_invoices.user_id', $user->id)->orWhere('recurring_invoices.assigned_user_id', $user->id);
                         });
@@ -457,7 +457,7 @@ class BaseController extends Controller
                 'company.recurring_expenses' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('documents');
 
-                    if (! $user->hasPermission('view_recurring_expense')) {
+                    if (!$user->hasPermission('view_recurring_expense')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('recurring_expenses.user_id', $user->id)->orWhere('recurring_expenses.assigned_user_id', $user->id);
                         });
@@ -466,7 +466,7 @@ class BaseController extends Controller
                 'company.tasks' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('project', 'documents');
 
-                    if (! $user->hasPermission('view_task')) {
+                    if (!$user->hasPermission('view_task')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('tasks.user_id', $user->id)->orWhere('tasks.assigned_user_id', $user->id);
                         });
@@ -478,7 +478,7 @@ class BaseController extends Controller
                 'company.vendors' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at)->with('contacts', 'documents');
 
-                    if (! $user->hasPermission('view_vendor')) {
+                    if (!$user->hasPermission('view_vendor')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('vendors.user_id', $user->id)->orWhere('vendors.assigned_user_id', $user->id);
                         });
@@ -491,14 +491,14 @@ class BaseController extends Controller
                     $query->whereNotNull('updated_at');
                 },
                 'company.activities' => function ($query) use ($user) {
-                    if (! $user->isAdmin()) {
+                    if (!$user->isAdmin()) {
                         $query->where('activities.user_id', $user->id);
                     }
                 },
                 'company.subscriptions' => function ($query) use ($user) {
                     $query->whereNotNull('updated_at');
 
-                    if (! $user->isAdmin()) {
+                    if (!$user->isAdmin()) {
                         $query->where('subscriptions.user_id', $user->id);
                     }
                 },
@@ -506,19 +506,19 @@ class BaseController extends Controller
                     $query->whereNotNull('updated_at');
 
                     //scopes down permissions for users with no permissions
-                    if (! $user->hasPermission('view_bank_transaction')) {
+                    if (!$user->hasPermission('view_bank_transaction')) {
                         $query->where('bank_integrations.user_id', $user->id);
                     }
 
                     //allows us to return integrations for users who can create bank transactions
-                    if (!$user->isSuperUser() && $user->hasIntersectPermissions(['create_bank_transaction','edit_bank_transaction','view_bank_transaction'])) {
+                    if (!$user->isSuperUser() && $user->hasIntersectPermissions(['create_bank_transaction', 'edit_bank_transaction', 'view_bank_transaction'])) {
                         $query->exclude(["balance"]);
                     }
                 },
                 'company.bank_transactions' => function ($query) use ($updated_at, $user) {
                     $query->where('updated_at', '>=', $updated_at);
 
-                    if (! $user->hasPermission('view_bank_transaction')) {
+                    if (!$user->hasPermission('view_bank_transaction')) {
                         $query->where('bank_transactions.user_id', $user->id);
                     }
                 },
@@ -562,7 +562,7 @@ class BaseController extends Controller
     private function resolveQueryLimit(): int
     {
         if (request()->has('per_page')) {
-            return min(abs((int)request()->input('per_page', 20)), 5000);
+            return min(abs((int) request()->input('per_page', 20)), 5000);
         }
 
         return 20;
@@ -613,26 +613,26 @@ class BaseController extends Controller
                     $query->whereNotNull('created_at');
                 },
                 'company.activities' => function ($query) use ($user) {
-                    if (! $user->isAdmin()) {
+                    if (!$user->isAdmin()) {
                         $query->where('activities.user_id', $user->id);
                     }
                 },
                 'company.bank_integrations' => function ($query) use ($user) {
-                    if (! $user->hasPermission('view_bank_transaction')) {
+                    if (!$user->hasPermission('view_bank_transaction')) {
                         $query->where('bank_integrations.user_id', $user->id);
                     }
 
-                    if (!$user->isSuperUser() && $user->hasIntersectPermissions(['create_bank_transaction','edit_bank_transaction','view_bank_transaction'])) {
+                    if (!$user->isSuperUser() && $user->hasIntersectPermissions(['create_bank_transaction', 'edit_bank_transaction', 'view_bank_transaction'])) {
                         $query->exclude(["balance"]);
                     }
                 },
                 'company.bank_transaction_rules' => function ($query) use ($user) {
-                    if (! $user->isAdmin() && !$user->hasIntersectPermissions(['create_bank_transaction','edit_bank_transaction','view_bank_transaction'])) {
+                    if (!$user->isAdmin() && !$user->hasIntersectPermissions(['create_bank_transaction', 'edit_bank_transaction', 'view_bank_transaction'])) {
                         $query->where('bank_transaction_rules.user_id', $user->id);
                     }
                 },
                 'company.task_schedulers' => function ($query) use ($user) {
-                    if (! $user->isAdmin()) {
+                    if (!$user->isAdmin()) {
                         $query->where('schedulers.user_id', $user->id);
                     }
                 },
@@ -653,7 +653,7 @@ class BaseController extends Controller
             $resource = new Collection($query, $transformer, $this->entity_type);
             $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));
         }
-        
+
         return $this->response($this->manager->createData($resource)->toArray());
     }
 
@@ -669,21 +669,21 @@ class BaseController extends Controller
         $user = auth()->user();
 
         /** React does not require bloated login response. */
-        if(request()->hasHeader('X-React')){
+        if (request()->hasHeader('X-React')) {
             $this->manager->parseIncludes(
-            [
-                'account',
-                'user.company_user',
-                'token',
-                'company',
-            ]);
+                [
+                    'account',
+                    'user.company_user',
+                    'token',
+                    'company',
+                ]
+            );
 
             // Set created_at to current time to filter out all existing related records
             // (designs, documents, groups, etc.) for a minimal response payload
             request()->merge(['created_at' => time()]);
             return $this->miniLoadResponse($query);
-        } 
-        elseif ($user->getCompany()->is_large) {
+        } elseif ($user->getCompany()->is_large) {
             $this->manager->parseIncludes($this->mini_load);
 
             return $this->miniLoadResponse($query);
@@ -712,7 +712,7 @@ class BaseController extends Controller
                 'company.clients' => function ($query) use ($created_at, $user) {
                     $query->where('clients.created_at', '>=', $created_at)->with('contacts.company', 'gateway_tokens', 'documents');
 
-                    if (! $user->hasPermission('view_client')) {
+                    if (!$user->hasPermission('view_client')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('clients.user_id', $user->id)->orWhere('clients.assigned_user_id', $user->id);
                         });
@@ -725,14 +725,14 @@ class BaseController extends Controller
                 'company.company_gateways' => function ($query) use ($user) {
                     $query->whereNotNull('created_at')->with('gateway');
 
-                    if (! $user->isAdmin()) {
+                    if (!$user->isAdmin()) {
                         $query->where('company_gateways.user_id', $user->id);
                     }
                 },
                 'company.credits' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at)->with('invitations', 'documents');
 
-                    if (! $user->hasPermission('view_credit')) {
+                    if (!$user->hasPermission('view_credit')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('credits.user_id', $user->id)->orWhere('credits.assigned_user_id', $user->id);
                         });
@@ -744,7 +744,7 @@ class BaseController extends Controller
                 'company.expenses' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at)->with('documents');
 
-                    if (! $user->hasPermission('view_expense')) {
+                    if (!$user->hasPermission('view_expense')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('expenses.user_id', $user->id)->orWhere('expenses.assigned_user_id', $user->id);
                         });
@@ -756,7 +756,7 @@ class BaseController extends Controller
                 'company.invoices' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at)->with('invitations', 'documents');
 
-                    if (! $user->hasPermission('view_invoice')) {
+                    if (!$user->hasPermission('view_invoice')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('invoices.user_id', $user->id)->orWhere('invoices.assigned_user_id', $user->id);
                         });
@@ -765,7 +765,7 @@ class BaseController extends Controller
                 'company.payments' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at)->with('paymentables', 'documents');
 
-                    if (! $user->hasPermission('view_payment')) {
+                    if (!$user->hasPermission('view_payment')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('payments.user_id', $user->id)->orWhere('payments.assigned_user_id', $user->id);
                         });
@@ -777,7 +777,7 @@ class BaseController extends Controller
                 'company.products' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at)->with('documents');
 
-                    if (! $user->hasPermission('view_product')) {
+                    if (!$user->hasPermission('view_product')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('products.user_id', $user->id)->orWhere('products.assigned_user_id', $user->id);
                         });
@@ -786,7 +786,7 @@ class BaseController extends Controller
                 'company.projects' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at)->with('documents');
 
-                    if (! $user->hasPermission('view_project')) {
+                    if (!$user->hasPermission('view_project')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('projects.user_id', $user->id)->orWhere('projects.assigned_user_id', $user->id);
                         });
@@ -795,7 +795,7 @@ class BaseController extends Controller
                 'company.purchase_orders' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at)->with('documents');
 
-                    if (! $user->hasPermission('view_purchase_order')) {
+                    if (!$user->hasPermission('view_purchase_order')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('purchase_orders.user_id', $user->id)->orWhere('purchase_orders.assigned_user_id', $user->id);
                         });
@@ -804,7 +804,7 @@ class BaseController extends Controller
                 'company.quotes' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at)->with('invitations', 'documents');
 
-                    if (! $user->hasPermission('view_quote')) {
+                    if (!$user->hasPermission('view_quote')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('quotes.user_id', $user->id)->orWhere('quotes.assigned_user_id', $user->id);
                         });
@@ -813,7 +813,7 @@ class BaseController extends Controller
                 'company.recurring_invoices' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at)->with('invitations', 'documents', 'client.gateway_tokens', 'client.group_settings', 'client.company');
 
-                    if (! $user->hasPermission('view_recurring_invoice')) {
+                    if (!$user->hasPermission('view_recurring_invoice')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('recurring_invoices.user_id', $user->id)->orWhere('recurring_invoices.assigned_user_id', $user->id);
                         });
@@ -822,7 +822,7 @@ class BaseController extends Controller
                 'company.tasks' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at)->with('project.documents', 'documents');
 
-                    if (! $user->hasPermission('view_task')) {
+                    if (!$user->hasPermission('view_task')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('tasks.user_id', $user->id)->orWhere('tasks.assigned_user_id', $user->id);
                         });
@@ -834,7 +834,7 @@ class BaseController extends Controller
                 'company.vendors' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at)->with('contacts', 'documents');
 
-                    if (! $user->hasPermission('view_vendor')) {
+                    if (!$user->hasPermission('view_vendor')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('vendors.user_id', $user->id)->orWhere('vendors.assigned_user_id', $user->id);
                         });
@@ -847,12 +847,12 @@ class BaseController extends Controller
                     $query->where('created_at', '>=', $created_at);
                 },
                 'company.activities' => function ($query) use ($user) {
-                    if (! $user->isAdmin()) {
+                    if (!$user->isAdmin()) {
                         $query->where('activities.user_id', $user->id);
                     }
                 },
                 'company.webhooks' => function ($query) use ($user) {
-                    if (! $user->isAdmin()) {
+                    if (!$user->isAdmin()) {
                         $query->where('webhooks.user_id', $user->id);
                     }
                 },
@@ -863,14 +863,14 @@ class BaseController extends Controller
                 'company.subscriptions' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at);
 
-                    if (! $user->isAdmin()) {
+                    if (!$user->isAdmin()) {
                         $query->where('subscriptions.user_id', $user->id);
                     }
                 },
                 'company.recurring_expenses' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at)->with('documents');
 
-                    if (! $user->hasPermission('view_recurring_expense')) {
+                    if (!$user->hasPermission('view_recurring_expense')) {
                         $query->whereNested(function ($query) use ($user) {
                             $query->where('recurring_expenses.user_id', $user->id)->orWhere('recurring_expenses.assigned_user_id', $user->id);
                         });
@@ -879,25 +879,25 @@ class BaseController extends Controller
                 'company.bank_integrations' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at);
 
-                    if (! $user->hasPermission('view_bank_transaction')) {
+                    if (!$user->hasPermission('view_bank_transaction')) {
                         $query->where('bank_integrations.user_id', $user->id);
                     }
 
-                    if (!$user->isSuperUser() && $user->hasIntersectPermissions(['create_bank_transaction','edit_bank_transaction','view_bank_transaction'])) {
+                    if (!$user->isSuperUser() && $user->hasIntersectPermissions(['create_bank_transaction', 'edit_bank_transaction', 'view_bank_transaction'])) {
                         $query->exclude(["balance"]);
                     }
                 },
                 'company.bank_transactions' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at);
 
-                    if (! $user->hasPermission('bank_transaction')) {
+                    if (!$user->hasPermission('bank_transaction')) {
                         $query->where('bank_transactions.user_id', $user->id);
                     }
                 },
                 'company.task_schedulers' => function ($query) use ($created_at, $user) {
                     $query->where('created_at', '>=', $created_at);
 
-                    if (! $user->isAdmin()) {
+                    if (!$user->isAdmin()) {
                         $query->where('schedulers.user_id', $user->id);
                     }
                 },
@@ -938,14 +938,14 @@ class BaseController extends Controller
 
         $user = Auth::user();
 
-        if ($user && ! $user->hasPermission('view_'.Str::snake(class_basename($this->entity_type)))) {
+        if ($user && !$user->hasPermission('view_' . Str::snake(class_basename($this->entity_type)))) {
             if (in_array($this->entity_type, [User::class])) {
                 $query->where('id', $user->id);
-            } elseif (in_array($this->entity_type, [BankTransactionRule::class,CompanyGateway::class, TaxRate::class, BankIntegration::class, Scheduler::class, BankTransaction::class, Webhook::class, ExpenseCategory::class])) { //table without assigned_user_id
-                if ($this->entity_type == BankIntegration::class && !$user->isSuperUser() && $user->hasIntersectPermissions(['create_bank_transaction','edit_bank_transaction','view_bank_transaction'])) {
+            } elseif (in_array($this->entity_type, [BankTransactionRule::class, CompanyGateway::class, TaxRate::class, BankIntegration::class, Scheduler::class, BankTransaction::class, Webhook::class, ExpenseCategory::class])) { //table without assigned_user_id
+                if ($this->entity_type == BankIntegration::class && !$user->isSuperUser() && $user->hasIntersectPermissions(['create_bank_transaction', 'edit_bank_transaction', 'view_bank_transaction'])) {
                     $query->exclude(["balance"]);
                 } //allows us to selective display bank integrations back to the user if they can view / create bank transactions but without the bank balance being present in the response
-                elseif ($this->entity_type == TaxRate::class && $user->hasIntersectPermissions(['create_invoice','edit_invoice','create_quote','edit_quote','create_purchase_order','edit_purchase_order'])) {
+                elseif ($this->entity_type == TaxRate::class && $user->hasIntersectPermissions(['create_invoice', 'edit_invoice', 'create_quote', 'edit_quote', 'create_purchase_order', 'edit_purchase_order'])) {
                     // need to show tax rates if the user has the ability to create documents.
                 } elseif ($this->entity_type == ExpenseCategory::class && $user->hasPermission('create_expense')) {
                     // need to show expense categories if the user has the ability to create expenses.
@@ -1133,7 +1133,7 @@ class BaseController extends Controller
                 return redirect()->secure(config('ninja.app_url'));
             }
 
-            if (config('ninja.require_https') && ! request()->isSecure()) {
+            if (config('ninja.require_https') && !request()->isSecure()) {
                 return redirect()->secure(request()->getRequestUri());
             }
 
@@ -1157,7 +1157,7 @@ class BaseController extends Controller
             $data['report_errors'] = Ninja::isSelfHost() ? $account->report_errors : true;
 
             //pass whitelabel bool to front end
-            $data['white_label'] = Ninja::isSelfHost() ? $account->isPaid() : false;
+            $data['white_label'] = true;
 
             //pass referral code to front end
             $data['rc'] = request()->has('rc') && is_string(request()->input('rc')) ? request()->input('rc') : '';

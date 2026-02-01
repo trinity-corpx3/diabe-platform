@@ -330,11 +330,15 @@ class Design extends BaseDesign
                 ['element' => 'div', 'content' => $this->client->name, 'show_empty' => false, 'properties' => ['data-ref' => 'delivery_note-client.name']],
                 ['element' => 'div', 'content' => $this->client->shipping_address1, 'show_empty' => false, 'properties' => ['data-ref' => 'delivery_note-client.shipping_address1']],
                 ['element' => 'div', 'content' => $this->client->shipping_address2, 'show_empty' => false, 'properties' => ['data-ref' => 'delivery_note-client.shipping_address2']],
-                ['element' => 'div', 'show_empty' => false, 'elements' => [
-                    ['element' => 'p', 'content' => "{$this->client->shipping_city} ", 'properties' => ['ref' => 'delivery_note-client.shipping_city']],
-                    ['element' => 'p', 'content' => "{$this->client->shipping_state} ", 'properties' => ['ref' => 'delivery_note-client.shipping_state']],
-                    ['element' => 'p', 'content' => "{$this->client->shipping_postal_code} ", 'properties' => ['ref' => 'delivery_note-client.shipping_postal_code']],
-                ]],
+                [
+                    'element' => 'div',
+                    'show_empty' => false,
+                    'elements' => [
+                        ['element' => 'p', 'content' => "{$this->client->shipping_city} ", 'properties' => ['ref' => 'delivery_note-client.shipping_city']],
+                        ['element' => 'p', 'content' => "{$this->client->shipping_state} ", 'properties' => ['ref' => 'delivery_note-client.shipping_state']],
+                        ['element' => 'p', 'content' => "{$this->client->shipping_postal_code} ", 'properties' => ['ref' => 'delivery_note-client.shipping_postal_code']],
+                    ]
+                ],
                 ['element' => 'div', 'content' => optional($this->client->shipping_country)->name, 'show_empty' => false],
             ];
 
@@ -363,18 +367,30 @@ class Design extends BaseDesign
             $s_date = $this->translateDate($this->options['start_date'], $this->client->date_format(), $this->client->locale()) . " - " . $this->translateDate($this->options['end_date'], $this->client->date_format(), $this->client->locale());
 
             return [
-                ['element' => 'tr', 'properties' => ['data-ref' => 'statement-label'], 'elements' => [
-                    ['element' => 'th', 'properties' => [], 'content' => ""],
-                    ['element' => 'th', 'properties' => [], 'content' => '<h2>'.ctrans('texts.statement').'</h2>'],
-                ]],
-                ['element' => 'tr', 'properties' => [], 'elements' => [
-                    ['element' => 'th', 'properties' => [], 'content' => ctrans('texts.statement_date')],
-                    ['element' => 'th', 'properties' => [], 'content' => $s_date ?? ''],
-                ]],
-                ['element' => 'tr', 'properties' => [], 'elements' => [
-                    ['element' => 'th', 'properties' => [], 'content' => '$balance_due_label'],
-                    ['element' => 'th', 'properties' => [], 'content' => Number::formatMoney($this->invoices->sum('balance'), $this->client)],
-                ]],
+                [
+                    'element' => 'tr',
+                    'properties' => ['data-ref' => 'statement-label'],
+                    'elements' => [
+                        ['element' => 'th', 'properties' => [], 'content' => ""],
+                        ['element' => 'th', 'properties' => [], 'content' => '<h2>' . ctrans('texts.statement') . '</h2>'],
+                    ]
+                ],
+                [
+                    'element' => 'tr',
+                    'properties' => [],
+                    'elements' => [
+                        ['element' => 'th', 'properties' => [], 'content' => ctrans('texts.statement_date')],
+                        ['element' => 'th', 'properties' => [], 'content' => $s_date ?? ''],
+                    ]
+                ],
+                [
+                    'element' => 'tr',
+                    'properties' => [],
+                    'elements' => [
+                        ['element' => 'th', 'properties' => [], 'content' => '$balance_due_label'],
+                        ['element' => 'th', 'properties' => [], 'content' => Number::formatMoney($this->invoices->sum('balance'), $this->client)],
+                    ]
+                ],
             ];
         }
 
@@ -412,15 +428,22 @@ class Design extends BaseDesign
             $var = str_replace("custom", "custom_value", $_variable);
 
             if (in_array($_variable, $_customs) && !empty($this->entity->{$var})) {
-                $elements[] = ['element' => 'tr', 'elements' => [
-                    ['element' => 'th', 'content' => $variable . '_label', 'properties' => ['data-ref' => 'entity_details-' . substr($variable, 1) . '_label']],
-                    ['element' => 'th', 'content' => $variable, 'properties' => ['data-ref' => 'entity_details-' . substr($variable, 1)]],
-                ]];
+                $elements[] = [
+                    'element' => 'tr',
+                    'elements' => [
+                        ['element' => 'th', 'content' => $variable . '_label', 'properties' => ['data-ref' => 'entity_details-' . substr($variable, 1) . '_label']],
+                        ['element' => 'th', 'content' => $variable, 'properties' => ['data-ref' => 'entity_details-' . substr($variable, 1)]],
+                    ]
+                ];
             } else {
-                $elements[] = ['element' => 'tr', 'properties' => ['hidden' => $this->entityVariableCheck($variable)], 'elements' => [
-                    ['element' => 'th', 'content' => $variable . '_label', 'properties' => ['data-ref' => 'entity_details-' . substr($variable, 1) . '_label']],
-                    ['element' => 'th', 'content' => $variable, 'properties' => ['data-ref' => 'entity_details-' . substr($variable, 1)]],
-                ]];
+                $elements[] = [
+                    'element' => 'tr',
+                    'properties' => ['hidden' => $this->entityVariableCheck($variable)],
+                    'elements' => [
+                        ['element' => 'th', 'content' => $variable . '_label', 'properties' => ['data-ref' => 'entity_details-' . substr($variable, 1) . '_label']],
+                        ['element' => 'th', 'content' => $variable, 'properties' => ['data-ref' => 'entity_details-' . substr($variable, 1)]],
+                    ]
+                ];
             }
         }
 
@@ -782,9 +805,12 @@ class Design extends BaseDesign
 
         $elements = [
             ['element' => 'thead', 'elements' => []],
-            ['element' => 'tbody', 'elements' => [
-                ['element' => 'tr', 'elements' => []],
-            ]],
+            [
+                'element' => 'tbody',
+                'elements' => [
+                    ['element' => 'tr', 'elements' => []],
+                ]
+            ],
         ];
 
         foreach ($this->aging as $column => $value) {
@@ -934,7 +960,7 @@ class Design extends BaseDesign
 
                 for ($i = 0; $i < count($product_customs); $i++) {
                     if ($product_customs[$i]) {
-                        $element['elements'][] = ['element' => 'td', 'content' => $row['delivery_note.delivery_note' . ($i + 1)], 'properties' => ['data-ref' => 'delivery_note_table.product' . ($i + 1) . '-td', 'visi' => $this->visibilityCheck($column_visibility, 'product'.($i + 1))]];
+                        $element['elements'][] = ['element' => 'td', 'content' => $row['delivery_note.delivery_note' . ($i + 1)], 'properties' => ['data-ref' => 'delivery_note_table.product' . ($i + 1) . '-td', 'visi' => $this->visibilityCheck($column_visibility, 'product' . ($i + 1))]];
                     }
                 }
 
@@ -1139,11 +1165,13 @@ class Design extends BaseDesign
     {
         if ($this->type === self::STATEMENT) {
             return [
-                ['element' => 'div', 'properties' => ['style' => 'display: flex; flex-direction: column;'], 'elements' => [
-                    ['element' => 'div', 'properties' => ['style' => 'display: block; align-items: flex-start; page-break-inside: avoid; visible !important;'], 'elements' => [
-                        ['element' => 'img', 'properties' => ['src' => '$invoiceninja.whitelabel', 'style' => 'height: 2.5rem; margin-top: 1.5rem;', 'hidden' => $this->entity->user->account->isPaid() ? 'true' : 'false', 'id' => 'invoiceninja-whitelabel-logo']],
-                    ]],
-                ]],
+                [
+                    'element' => 'div',
+                    'properties' => ['style' => 'display: flex; flex-direction: column;'],
+                    'elements' => [
+
+                    ]
+                ],
             ];
         }
 
@@ -1156,19 +1184,30 @@ class Design extends BaseDesign
 
 
         $elements = [
-            ['element' => 'div', 'properties' => ['style' => 'display: flex; flex-direction: column;'], 'elements' => [
-                ['element' => 'div', 'properties' => ['data-ref' => 'total_table-public_notes', 'style' => 'text-align: left;'], 'elements' => [
-                    ['element' => 'span', 'content' => strtr(str_replace(["labels", "values"], ["",""], $_variables['values']['$entity.public_notes']), $_variables)]
-                ]],
-                ['element' => 'div', 'content' => '', 'properties' => ['style' => 'text-align: left; display: flex; flex-direction: column; page-break-inside: auto;'], 'elements' => [
-                    ['element' => 'span', 'content' => '$entity.terms_label: ', 'properties' => ['data-ref' => 'total_table-terms-label', 'style' => "font-weight: bold; text-align: left; margin-top: 1rem; {$show_terms_label}"]],
-                    ['element' => 'span', 'content' => strtr(str_replace("labels", "", $_variables['values']['$entity.terms']), $_variables['labels']), 'properties' => ['data-ref' => 'total_table-terms', 'style' => 'text-align: left;']],
-                ]],
-                ['element' => 'img', 'properties' => ['style' => 'max-width: 50%; height: auto;', 'src' => '$contact.signature', 'id' => 'contact-signature']],
-                ['element' => 'div', 'properties' => ['style' => 'display: flex; align-items: flex-start; page-break-inside: auto;'], 'elements' => [
-                    ['element' => 'img', 'properties' => ['src' => '$invoiceninja.whitelabel', 'style' => 'height: 2.5rem; margin-top: 1.5rem;', 'hidden' => $this->entity->user->account->isPaid() ? 'true' : 'false', 'id' => 'invoiceninja-whitelabel-logo']],
-                ]],
-            ]],
+            [
+                'element' => 'div',
+                'properties' => ['style' => 'display: flex; flex-direction: column;'],
+                'elements' => [
+                    [
+                        'element' => 'div',
+                        'properties' => ['data-ref' => 'total_table-public_notes', 'style' => 'text-align: left;'],
+                        'elements' => [
+                            ['element' => 'span', 'content' => strtr(str_replace(["labels", "values"], ["", ""], $_variables['values']['$entity.public_notes']), $_variables)]
+                        ]
+                    ],
+                    [
+                        'element' => 'div',
+                        'content' => '',
+                        'properties' => ['style' => 'text-align: left; display: flex; flex-direction: column; page-break-inside: auto;'],
+                        'elements' => [
+                            ['element' => 'span', 'content' => '$entity.terms_label: ', 'properties' => ['data-ref' => 'total_table-terms-label', 'style' => "font-weight: bold; text-align: left; margin-top: 1rem; {$show_terms_label}"]],
+                            ['element' => 'span', 'content' => strtr(str_replace("labels", "", $_variables['values']['$entity.terms']), $_variables['labels']), 'properties' => ['data-ref' => 'total_table-terms', 'style' => 'text-align: left;']],
+                        ]
+                    ],
+                    ['element' => 'img', 'properties' => ['style' => 'max-width: 50%; height: auto;', 'src' => '$contact.signature', 'id' => 'contact-signature']],
+
+                ]
+            ],
             ['element' => 'div', 'properties' => ['class' => 'totals-table-right-side', 'dir' => '$dir'], 'elements' => []],
         ];
 
@@ -1224,10 +1263,13 @@ class Design extends BaseDesign
                 }
 
                 foreach ($taxes as $i => $tax) {
-                    $elements[1]['elements'][] = ['element' => 'div', 'elements' => [
-                        ['element' => 'span', 'content', 'content' => $tax['name'], 'properties' => ['data-ref' => 'totals-table-total_tax_' . $i . '-label']],
-                        ['element' => 'span', 'content', 'content' => Number::formatMoney($tax['total'], $this->entity instanceof \App\Models\PurchaseOrder ? $this->vendor : $this->client), 'properties' => ['data-ref' => 'totals-table-total_tax_' . $i]],
-                    ]];
+                    $elements[1]['elements'][] = [
+                        'element' => 'div',
+                        'elements' => [
+                            ['element' => 'span', 'content', 'content' => $tax['name'], 'properties' => ['data-ref' => 'totals-table-total_tax_' . $i . '-label']],
+                            ['element' => 'span', 'content', 'content' => Number::formatMoney($tax['total'], $this->entity instanceof \App\Models\PurchaseOrder ? $this->vendor : $this->client), 'properties' => ['data-ref' => 'totals-table-total_tax_' . $i]],
+                        ]
+                    ];
                 }
             } elseif ($variable == '$line_taxes') {
                 $taxes = $this->entity->calc()->getTaxMap();
@@ -1237,39 +1279,54 @@ class Design extends BaseDesign
                 }
 
                 foreach ($taxes as $i => $tax) {
-                    $elements[1]['elements'][] = ['element' => 'div', 'elements' => [
-                        ['element' => 'span', 'content', 'content' => $tax['name'], 'properties' => ['data-ref' => 'totals-table-line_tax_' . $i . '-label']],
-                        ['element' => 'span', 'content', 'content' => Number::formatMoney($tax['total'], $this->entity instanceof \App\Models\PurchaseOrder ? $this->vendor : $this->client), 'properties' => ['data-ref' => 'totals-table-line_tax_' . $i]],
-                    ]];
+                    $elements[1]['elements'][] = [
+                        'element' => 'div',
+                        'elements' => [
+                            ['element' => 'span', 'content', 'content' => $tax['name'], 'properties' => ['data-ref' => 'totals-table-line_tax_' . $i . '-label']],
+                            ['element' => 'span', 'content', 'content' => Number::formatMoney($tax['total'], $this->entity instanceof \App\Models\PurchaseOrder ? $this->vendor : $this->client), 'properties' => ['data-ref' => 'totals-table-line_tax_' . $i]],
+                        ]
+                    ];
                 }
             } elseif (Str::startsWith($variable, '$custom_surcharge')) {
                 $_variable = ltrim($variable, '$'); // $custom_surcharge1 -> custom_surcharge1
-                $visible = intval(str_replace(['0','.'], '', $this->entity->{$_variable})) != 0;
+                $visible = intval(str_replace(['0', '.'], '', $this->entity->{$_variable})) != 0;
 
-                $elements[1]['elements'][] = ['element' => 'div', 'elements' => [
-                    ['element' => 'span', 'content' => $variable . '_label', 'properties' => ['hidden' => !$visible, 'data-ref' => 'totals_table-' . substr($variable, 1) . '-label']],
-                    ['element' => 'span', 'content' => $variable, 'properties' => ['hidden' => !$visible, 'data-ref' => 'totals_table-' . substr($variable, 1)]],
-                ]];
+                $elements[1]['elements'][] = [
+                    'element' => 'div',
+                    'elements' => [
+                        ['element' => 'span', 'content' => $variable . '_label', 'properties' => ['hidden' => !$visible, 'data-ref' => 'totals_table-' . substr($variable, 1) . '-label']],
+                        ['element' => 'span', 'content' => $variable, 'properties' => ['hidden' => !$visible, 'data-ref' => 'totals_table-' . substr($variable, 1)]],
+                    ]
+                ];
             } elseif (Str::startsWith($variable, '$custom')) {
                 $field = explode('_', $variable);
                 $visible = is_object($this->company->custom_fields) && property_exists($this->company->custom_fields, $field[1]) && !empty($this->company->custom_fields->{$field[1]});
 
-                $elements[1]['elements'][] = ['element' => 'div', 'elements' => [
-                    ['element' => 'span', 'content' => $variable . '_label', 'properties' => ['hidden' => !$visible, 'data-ref' => 'totals_table-' . substr($variable, 1) . '-label']],
-                    ['element' => 'span', 'content' => $variable, 'properties' => ['hidden' => !$visible, 'data-ref' => 'totals_table-' . substr($variable, 1)]],
-                ]];
+                $elements[1]['elements'][] = [
+                    'element' => 'div',
+                    'elements' => [
+                        ['element' => 'span', 'content' => $variable . '_label', 'properties' => ['hidden' => !$visible, 'data-ref' => 'totals_table-' . substr($variable, 1) . '-label']],
+                        ['element' => 'span', 'content' => $variable, 'properties' => ['hidden' => !$visible, 'data-ref' => 'totals_table-' . substr($variable, 1)]],
+                    ]
+                ];
             } else {
-                $elements[1]['elements'][] = ['element' => 'div', 'elements' => [
-                    ['element' => 'span', 'content' => $variable . '_label', 'properties' => ['data-ref' => 'totals_table-' . substr($variable, 1) . '-label']],
-                    ['element' => 'span', 'content' => $variable, 'properties' => ['data-ref' => 'totals_table-' . substr($variable, 1)]],
-                ]];
+                $elements[1]['elements'][] = [
+                    'element' => 'div',
+                    'elements' => [
+                        ['element' => 'span', 'content' => $variable . '_label', 'properties' => ['data-ref' => 'totals_table-' . substr($variable, 1) . '-label']],
+                        ['element' => 'span', 'content' => $variable, 'properties' => ['data-ref' => 'totals_table-' . substr($variable, 1)]],
+                    ]
+                ];
             }
         }
 
-        $elements[1]['elements'][] = ['element' => 'div', 'elements' => [
-            ['element' => 'span', 'content' => '',],
-            ['element' => 'span', 'content' => ''],
-        ]];
+        $elements[1]['elements'][] = [
+            'element' => 'div',
+            'elements' => [
+                ['element' => 'span', 'content' => '',],
+                ['element' => 'span', 'content' => ''],
+            ]
+        ];
 
         return $elements;
     }
