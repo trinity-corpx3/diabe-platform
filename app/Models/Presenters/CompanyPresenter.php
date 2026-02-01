@@ -90,6 +90,11 @@ class CompanyPresenter extends EntityPresenter
             return "data:image/png;base64," . base64_encode(@file_get_contents(url('') . $settings->company_logo, false, stream_context_create($context_options)));
         } else {
             // Fallback to DIABE Logo
+            $logoPath = base_path('custom_public/images/diabe_logo.jpg');
+            if (file_exists($logoPath)) {
+                return "data:image/png;base64," . base64_encode(file_get_contents($logoPath));
+            }
+
             $logoPath = public_path('images/diabe_logo.jpg');
             if (file_exists($logoPath)) {
                 return "data:image/png;base64," . base64_encode(file_get_contents($logoPath));
