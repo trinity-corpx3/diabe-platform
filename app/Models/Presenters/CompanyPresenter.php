@@ -61,7 +61,7 @@ class CompanyPresenter extends EntityPresenter
             // [FIX] Check for custom DIABE logo in Docker
             $diabePath = base_path('custom_public/images/diabe_logo.jpg');
             if (file_exists($diabePath)) {
-                return "data:image/png;base64," . base64_encode(file_get_contents($diabePath));
+                return "data:image/jpeg;base64," . base64_encode(file_get_contents($diabePath));
             }
 
             return $this->logo($settings);
@@ -98,15 +98,15 @@ class CompanyPresenter extends EntityPresenter
             // Fallback to DIABE Logo
             $logoPath = base_path('custom_public/images/diabe_logo.jpg');
             if (file_exists($logoPath)) {
-                return "data:image/png;base64," . base64_encode(file_get_contents($logoPath));
+                return "data:image/jpeg;base64," . base64_encode(file_get_contents($logoPath));
             }
 
             $logoPath = public_path('images/diabe_logo.jpg');
             if (file_exists($logoPath)) {
-                return "data:image/png;base64," . base64_encode(file_get_contents($logoPath));
+                return "data:image/jpeg;base64," . base64_encode(file_get_contents($logoPath));
             }
             // Transparent pixel if even DIABE logo is missing
-            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==";
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQ42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==";
         }
     }
 
