@@ -1,0 +1,9 @@
+import{aa as t,r as o,e as a}from"./index-DwXjzTLP.js";import{u}from"./react-query-CoI1znE-.js";/**
+ * Invoice Ninja (https://invoiceninja.com).
+ *
+ * @link https://github.com/invoiceninja/invoiceninja source repository
+ *
+ * @copyright Copyright (c) 2022. Invoice Ninja LLC (https://invoiceninja.com)
+ *
+ * @license https://www.elastic.co/licensing/elastic-license
+ */function l({entity:e}){const n=u();return s=>{s.length&&(t.processing(),n.fetchQuery([`/api/v1/${e}s/bulk`],()=>o("POST",a(`/api/v1/${e}s/bulk`),{action:"bulk_download",ids:s}).then(()=>t.success("downloaded_entities"))))}}export{l as u};

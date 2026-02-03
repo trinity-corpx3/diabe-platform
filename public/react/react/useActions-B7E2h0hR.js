@@ -1,0 +1,9 @@
+import{j as t}from"./react-C-6650bX.js";import{ac as v,bu as f,X as k,ah as n,U as o,ai as h,aj as s,ak as a,bb as j}from"./index-DwXjzTLP.js";import{b as y,A as d}from"./transactions-BqmkkRFT.js";import{y as x}from"./lodash-BqnCD_d5.js";import{$ as b,aL as A,O as C,R as _,Q as D}from"./react-icons-CvaiBonm.js";import{u as E}from"./react-i18next-mqyEDb_3.js";import{a as I}from"./react-router-Dm3tNMtk.js";import{b as g}from"./jotai-Ca2bzGWW.js";/**
+ * Invoice Ninja (https://invoiceninja.com).
+ *
+ * @link https://github.com/invoiceninja/invoiceninja source repository
+ *
+ * @copyright Copyright (c) 2022. Invoice Ninja LLC (https://invoiceninja.com)
+ *
+ * @license https://www.elastic.co/licensing/elastic-license
+ */function q(){return i=>i.includes("\\n ")?i.replace("\\n",""):i.includes("\\n")?i.replace("\\n"," "):i}function N(){const[i]=E(),r=y(),u=I(),{isEditPage:c}=v({entity:"transaction"}),{data:l}=f(),m=g(k),p=e=>{l&&(m(x.cloneDeep({...l,line_items:[{...j(),notes:e.description,cost:e.amount,product_key:e.date,quantity:1}]})),u("/invoices/create?action=invoice_transaction"))};return[e=>e.base_type===d.Credit&&t.jsx(n,{onClick:()=>p(e),icon:t.jsx(o,{element:b}),children:i("create_invoice")}),e=>e.payment_id&&t.jsx(n,{onClick:()=>r([e.id],"unlink"),icon:t.jsx(o,{element:A}),children:i("unlink")}),e=>!!((e.payment_id||e.base_type===d.Credit)&&c)&&t.jsx(h,{withoutPadding:!0}),e=>s(e)===a.Active&&c&&t.jsx(n,{onClick:()=>r([e.id],"archive"),icon:t.jsx(o,{element:C}),children:i("archive")}),e=>(s(e)===a.Archived||s(e)===a.Deleted)&&c&&t.jsx(n,{onClick:()=>r([e.id],"restore"),icon:t.jsx(o,{element:_}),children:i("restore")}),e=>(s(e)===a.Active||s(e)===a.Archived)&&c&&t.jsx(n,{onClick:()=>r([e.id],"delete"),icon:t.jsx(o,{element:D}),children:i("delete")})]}export{N as a,q as u};
