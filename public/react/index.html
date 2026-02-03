@@ -210,36 +210,30 @@
   <div id="root"></div>
 
   <script>
-    // Replace Invoice Ninja logo with DIABE logo
+    // Replace Invoice Ninja logo with DIABE logo (only Invoice Ninja logos, not DIABE logos)
+    function replaceLogo(img) {
+      const src = img.getAttribute('src');
+      // Only replace if it's an Invoice Ninja logo, not already a DIABE logo
+      if (src && (src.includes('invoiceninja') || src.includes('logo@')) && !src.includes('diabe')) {
+        img.src = '/images/diabe_logo.jpg';
+        img.alt = 'DIABE';
+        img.style.maxWidth = '200px';
+        img.style.height = 'auto';
+        img.dataset.diabeReplaced = 'true';
+      }
+    }
+
     const observer = new MutationObserver(() => {
-      const images = document.querySelectorAll('img');
-      images.forEach(img => {
-        const src = img.getAttribute('src');
-        if (src && src.includes('logo') && !img.dataset.diabeReplaced) {
-          img.src = '/images/diabe_logo.jpg';
-          img.alt = 'DIABE';
-          img.style.maxWidth = '200px';
-          img.style.height = 'auto';
-          img.dataset.diabeReplaced = 'true';
-        }
-      });
+      const images = document.querySelectorAll('img:not([data-diabe-replaced])');
+      images.forEach(replaceLogo);
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
 
     // Also run once on load
     window.addEventListener('load', () => {
-      const images = document.querySelectorAll('img');
-      images.forEach(img => {
-        const src = img.getAttribute('src');
-        if (src && src.includes('logo') && !img.dataset.diabeReplaced) {
-          img.src = '/images/diabe_logo.jpg';
-          img.alt = 'DIABE';
-          img.style.maxWidth = '200px';
-          img.style.height = 'auto';
-          img.dataset.diabeReplaced = 'true';
-        }
-      });
+      const images = document.querySelectorAll('img:not([data-diabe-replaced])');
+      images.forEach(replaceLogo);
     });
   </script>
 </body>
