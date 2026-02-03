@@ -27,50 +27,32 @@ class ConfigureConstructionCompany extends Command
     {
         $this->info('Iniciando configuración para Empresa Constructora...');
 
-        $company = \App\Models\Company::first();
+        // 3. Configurar Etiquetas Personalizadas (Traducciones) en TODAS las empresas
+        $companies = \App\Models\Company::all();
 
-        if (!$company) {
-            $this->error('No se encontró ninguna empresa. Por favor completa el setup inicial primero.');
-            return 1;
+        foreach ($companies as $company) {
+            $this->info("Procesando empresa: " . $company->present()->name() . " (ID: {$company->id})");
+
+            $settings = $company->settings;
+
+            // Inicializamos translations si es null
+            if (!isset($settings->translations) || is_null($settings->translations)) {
+                $settings->translations = new \stdClass();
+            }
+
+            // Aplicamos las traducciones deseadas
+            $settings->translations->vendors = "Proveedores";
+            $settings->translations->vat_number = "RFC";
+            $settings->translations->vendor = "Proveedor"; // Aseguramos singular
+            $settings->translations->clients = "Clientes"; // Aseguramos clientes
+
+            $company->settings = $settings;
+            $company->save();
+
+            $this->info("   - Etiquetas personalizadas (Proveedores, RFC, Clientes) actualizadas.");
         }
 
-        // 1. Configurar Campos Personalizados
-        // Estructura JSON para custom_fields en v5
-        $customFields = $company->custom_fields ?? (object) [];
-
-        // Projects (Obras)
-        // Campo Fecha 1: Fecha Inicio Obra
-        $customFields->project1 = "Fecha Inicio Obra|date";
-        // Campo Fecha 2: Fecha Entrega Pactada
-        $customFields->project2 = "Fecha Entrega Pactada|date";
-        // Campo Dropdown: Estatus Financiero
-        $customFields->project3 = "Estatus Financiero|dropdown|En Presupuesto,Desviación,Crítico";
-
-        // Invoices (Facturas)
-        // Campo Texto 1: Referencia Bancaria
-        $customFields->invoice1 = "Referencia Bancaria";
-
-        $company->custom_fields = $customFields;
-        $this->info('Campos Personalizados actualizados.');
-
-        // 3. Configurar Etiquetas Personalizadas (Traducciones)
-        // Esto corrige los nombres de "Vendedores" -> "Proveedores" y "CIF/NIF" -> "RFC"
-        $settings = $company->settings;
-
-        // Inicializamos translations si es null
-        if (!isset($settings->translations) || is_null($settings->translations)) {
-            $settings->translations = new \stdClass();
-        }
-
-        $settings->translations->vendors = "Proveedores";
-        $settings->translations->vat_number = "RFC";
-
-        $company->settings = $settings;
-        $this->info('Etiquetas personalizadas (Proveedores y RFC) actualizadas.');
-
-        $company->save();
-
-        $this->info('Configuración guardada exitosamente para la empresa: ' . $company->present()->name());
+        $this->info('Configuración guardada exitosamente para todas las empresas.');
 
         return 0;
     }

@@ -1,0 +1,6 @@
+
+   Symfony\Component\ErrorHandler\Error\FatalError 
+
+  Allowed memory size of 134217728 bytes exhausted (tried to allocate 8388608 bytes)
+
+  at vendor\composer\autoload_classmap.php:32775
