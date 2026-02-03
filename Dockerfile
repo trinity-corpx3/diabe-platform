@@ -74,6 +74,7 @@ COPY --chown=invoiceninja:invoiceninja app /var/www/app/app
 COPY --chown=invoiceninja:invoiceninja verify_whitelabel.php /var/www/app/verify_whitelabel.php
 
 # Copy public assets to custom directory to persist them in image
+# Cache buster: 2026-02-03-16:00
 COPY --chown=invoiceninja:invoiceninja public /var/www/app/custom_public
 
 
