@@ -1,44 +1,57 @@
 <?php
+/**
+ * Script to update React translation JSON files.
+ * Uses string replacement to ensure "Vendedores" -> "Proveedores" and "CIF/NIF" -> "RFC".
+ */
 
-$files = [
-    'public/react/es-Ca_e5WRV.json',
-    'public/react/es_ES-jZFKIguI.json',
-];
+// Define the directory containing the React translation JSON files
+$dir = __DIR__ . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'react' . DIRECTORY_SEPARATOR;
+
+// Find all Spanish translation files (and any others that might be relevant)
+$files = glob($dir . 'es*.json');
+
+echo "Found " . count($files) . " files to process.\n";
 
 $replacements = [
-    '"vendors":"Vendedores"' => '"vendors":"Proveedores"',
-    '"vat_number":"CIF\/NIF"' => '"vat_number":"RFC"',
-    '"list_vendors":"Listar Proveedores"' => '"list_vendors":"Listar Proveedores"', // Correcting plural
-    '"archived_vendors":":count proveedores actualizados con éxito"' => '"archived_vendors":":count proveedores actualizados con éxito"', // No change needed if already Proveedores
-    '"deleted_vendors":":count proveedores actualizados con éxito"' => '"deleted_vendors":":count proveedores actualizados con éxito"', // No change needed
-    '"vendor":"Proveedor"' => '"vendor":"Proveedor"', // Standardizing singular
-];
-
-// Broad search and replace for any "Vendedores" or "CIF/NIF" outside specific JSON keys too
-$patterns = [
-    '/Vendedores/' => 'Proveedores',
-    '/CIF\/NIF/' => 'RFC',
+    'Vendedores' => 'Proveedores',
+    'Vendedor' => 'Proveedor',
+    'vendedores' => 'proveedores',
+    'vendedor' => 'proveedor',
+    'CIF\\/NIF' => 'RFC', // Escaped slash in JSON
+    'CIF/NIF' => 'RFC',   // Literal slash
+    'NIF' => 'RFC',
+    'CIF' => 'RFC',
 ];
 
 foreach ($files as $file) {
-    $path = __DIR__ . '/' . $file;
-    if (file_exists($path)) {
-        $content = file_get_contents($path);
+    if (!file_exists($file))
+        continue;
 
-        $original = $content;
+    echo "Processing " . basename($file) . "...\n";
+    $content = file_get_contents($file);
+    if ($content === false) {
+        echo "Error reading file: $file\n";
+        continue;
+    }
 
-        // Use patterns for thoroughness
-        foreach ($patterns as $pattern => $replacement) {
-            $content = preg_replace($pattern, $replacement, $content);
+    $new_content = $content;
+    foreach ($replacements as $search => $replace) {
+        $count = 0;
+        $new_content = str_replace($search, $replace, $new_content, $count);
+        if ($count > 0) {
+            echo "  Replaced '$search' with '$replace' ($count times)\n";
         }
+    }
 
-        if ($content !== $original) {
-            file_put_contents($path, $content);
-            echo "Updated $file\n";
+    if ($new_content !== $content) {
+        if (file_put_contents($file, $new_content) !== false) {
+            echo "Successfully updated " . basename($file) . "\n";
         } else {
-            echo "No changes needed for $file\n";
+            echo "Error writing to file: $file\n";
         }
     } else {
-        echo "File not found: $file\n";
+        echo "  No changes needed for " . basename($file) . "\n";
     }
 }
+
+echo "Done!\n";
