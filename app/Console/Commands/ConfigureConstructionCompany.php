@@ -53,17 +53,20 @@ class ConfigureConstructionCompany extends Command
         $company->custom_fields = $customFields;
         $this->info('Campos Personalizados actualizados.');
 
-        // 2. Configurar Dashboard (Ocultar Tasks, Mostrar P&L)
-        // Desactivar módulos operativos innecesarios
-        // Esto se maneja via enabled_modules (bitmask) o settings booleanos
+        // 3. Configurar Etiquetas Personalizadas (Traducciones)
+        // Esto corrige los nombres de "Vendedores" -> "Proveedores" y "CIF/NIF" -> "RFC"
+        $settings = $company->settings;
 
-        // Deshabilitar Tasks (Modules::TASKS = 8)
-        // Bitwise logic is trickier via script without defined constants in scope, 
-        // better to use methods if available, but direct property set works for booleans.
+        // Inicializamos translations si es null
+        if (!isset($settings->translations) || is_null($settings->translations)) {
+            $settings->translations = new \stdClass();
+        }
 
-        // Habilitar visualización de Profit & Loss (generalmente prefencias de usuario, pero intentamos setear globales)
-        // Nota: Dashboard configuration is often user-specific (User preferences).
-        // Intentaremos configurar preferencias por defecto de la empresa si existen.
+        $settings->translations->vendors = "Proveedores";
+        $settings->translations->vat_number = "RFC";
+
+        $company->settings = $settings;
+        $this->info('Etiquetas personalizadas (Proveedores y RFC) actualizadas.');
 
         $company->save();
 

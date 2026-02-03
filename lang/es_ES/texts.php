@@ -4913,7 +4913,7 @@ Una vez que tenga los montos, vuelva a esta página de métodos de pago y haga c
     'email_record' => 'Registro de correo electrónico',
     'invoice_product_columns' => 'Columnas de productos de la factura',
     'quote_product_columns' => 'Columnas de productos del presupuesto',
-    'vendors' => 'Proveedor',
+    'vendors' => 'Proveedores',
     'product_sales' => 'Venta de productos',
     'user_sales_report_header' => 'Informe de ventas de usuarios para cliente/s :client de :start_date a :end_date',
     'client_balance_report' => 'Informe de saldo de clientes',
@@ -5593,7 +5593,7 @@ De lo contrario, este campo deberá dejarse en blanco.',
     'project' => 'Obra',
     'projects' => 'Obras',
     'vendor' => 'Proveedor',
-    'vendors' => 'Base de Datos Proveedores',
+    'vendors' => 'Proveedores',
 );
 
 return $lang;
