@@ -74,8 +74,15 @@ COPY --chown=invoiceninja:invoiceninja app /var/www/app/app
 COPY --chown=invoiceninja:invoiceninja verify_whitelabel.php /var/www/app/verify_whitelabel.php
 
 # Copy public assets to custom directory to persist them in image
-# Cache buster: 2026-02-03-16:00
+# IMPORTANT: Force rebuild - v2026.02.03.2200
+ARG CACHEBUST=1
+RUN echo "Build timestamp: $(date)"
 COPY --chown=invoiceninja:invoiceninja public /var/www/app/custom_public
+
+# Verify files were copied correctly (for debugging)
+RUN ls -la /var/www/app/custom_public/react/ | head -5 && \
+    echo "Total files in react:" && \
+    ls /var/www/app/custom_public/react/ | wc -l
 
 
 # Update supervisor to include nginx
