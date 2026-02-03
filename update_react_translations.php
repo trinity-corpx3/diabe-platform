@@ -19,8 +19,11 @@ $replacements = [
     'vendedor' => 'proveedor',
     'CIF\\/NIF' => 'RFC', // Escaped slash in JSON
     'CIF/NIF' => 'RFC',   // Literal slash
+    'CIF\\\/NIF' => 'RFC', // Triple escaped
     'NIF' => 'RFC',
     'CIF' => 'RFC',
+    'VAT Number' => 'RFC',
+    'vat_number' => 'rfc_number', // Just in case it's used as a label
 ];
 
 foreach ($files as $file) {
