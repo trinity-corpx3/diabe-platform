@@ -118,30 +118,30 @@
                             }
 
                             // --- Smart Context Detection ---
-
+                            
                             // 1. Logic for Color (Dark BG -> White Text, Light BG -> Dark Text)
                             const isDarkBg = isBackgroundDark(img.parentElement);
                             const textColor = isDarkBg ? "#FFFFFF" : "#1f2937";
-
+                            
                             // 2. Logic for Size (Compact Container -> Small Text, Large Container -> Large Text)
                             const parentRect = img.parentElement ? img.parentElement.getBoundingClientRect() : { width: 1000 };
-                            const isCompact = parentRect.width < 320;
+                            const isCompact = parentRect.width < 320; 
 
                             // --- Company Dropdown Cleanup ---
                             if (isCompact) {
                                 const siblings = img.parentElement ? Array.from(img.parentElement.children) : [];
                                 siblings.forEach(sib => {
                                     if (sib !== img && sib.innerText && sib.innerText.trim().length > 0) {
-                                        sib.style.display = 'none';
+                                       sib.style.display = 'none';
                                     }
-                                    if (sib.classList.contains('truncate') || sib.classList.contains('w-36')) {
+                                    if(sib.classList.contains('truncate') || sib.classList.contains('w-36')) {
                                         sib.style.display = 'none';
                                     }
                                 });
-
+                                
                                 if (img.parentElement && img.parentElement.nextElementSibling) {
                                     const nextSib = img.parentElement.nextElementSibling;
-                                    if (nextSib.classList.contains('truncate') || nextSib.classList.contains('w-36')) {
+                                     if(nextSib.classList.contains('truncate') || nextSib.classList.contains('w-36')) {
                                         nextSib.style.display = 'none';
                                     }
                                 }
@@ -150,27 +150,43 @@
                             const container = document.createElement('div');
                             container.style.display = "flex";
                             container.style.alignItems = "center";
-                            container.style.justifyContent = isCompact ? "flex-start" : "center";
+                            container.style.justifyContent = isCompact ? "flex-start" : "center"; 
                             container.style.gap = isCompact ? "10px" : "15px";
                             container.style.marginBottom = isCompact ? "0px" : "24px";
                             container.style.width = "100%";
                             container.style.cursor = "default";
-
+                            
                             if (isCompact) {
                                 container.style.padding = "0px";
                                 container.style.overflow = "hidden";
                             }
 
-                            // Logo Image
-                            const logoImg = document.createElement('img');
-                            logoImg.src = "{{ asset('images/diabe_logo.jpg') }}";
-                            logoImg.alt = "DIABE";
-                            logoImg.style.maxWidth = isCompact ? "120px" : "200px";
-                            logoImg.style.height = "auto";
-                            logoImg.style.objectFit = "contain";
-                            logoImg.style.flexShrink = "0";
+                            // Icon
+                            const icon = document.createElement('i');
+                            icon.className = "fa-solid fa-swatchbook fa-beat-fade";
+                            icon.style.color = "#25a70c";
+                            icon.style.fontSize = isCompact ? "22px" : "36px"; 
+                            icon.style.textDecoration = "none";
+                            icon.style.border = "none";
+                            icon.style.flexShrink = "0";
 
-                            container.appendChild(logoImg);
+                            // Text
+                            const text = document.createElement('div');
+                            text.innerText = "DIABE Platform";
+                            text.style.fontFamily = "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif";
+                            
+                            // Apply Decoupled Styles
+                            text.style.color = textColor; // Based on Background
+                            text.style.fontSize = isCompact ? "18px" : "32px"; // Based on Width
+                            text.style.fontWeight = isCompact ? "500" : "600";
+                            
+                            text.style.textDecoration = "none";
+                            text.style.border = "none";
+                            text.style.lineHeight = "1.2"; 
+                            text.style.whiteSpace = "nowrap";
+
+                            container.appendChild(icon);
+                            container.appendChild(text);
 
                             if (img.parentNode) {
                                 img.parentNode.insertBefore(container, img);
@@ -193,19 +209,19 @@
 
                     if (text === '2FA - One Time Password' || text === 'Secret') {
                         if (node.parentElement) {
-                            node.parentElement.style.display = 'none';
+                            node.parentElement.style.display = 'none'; 
                             const next = node.parentElement.nextElementSibling;
                             if (next) next.style.display = 'none';
                         }
                     }
-
+                    
                     // Hide "Compra Marca Blanca" or "Buy White Label" text nodes
                     if (text.includes('Compra Marca Blanca') || text.includes('Buy White Label')) {
-                        if (node.parentElement) {
-                            // Hide the button container (often a button or a link)
-                            const btn = node.parentElement.closest('button') || node.parentElement.closest('a') || node.parentElement;
-                            if (btn) btn.style.display = 'none';
-                        }
+                         if (node.parentElement) {
+                             // Hide the button container (often a button or a link)
+                             const btn = node.parentElement.closest('button') || node.parentElement.closest('a') || node.parentElement;
+                             if(btn) btn.style.display = 'none';
+                         }
                     }
                 }
 
@@ -213,8 +229,8 @@
                 const inputs = document.querySelectorAll('input[placeholder="(optional)"]');
                 inputs.forEach(input => {
                     input.style.display = 'none';
-                    if (input.previousElementSibling) input.previousElementSibling.style.display = 'none';
-                    if (input.nextElementSibling) input.nextElementSibling.style.display = 'none';
+                    if (input.previousElementSibling) input.previousElementSibling.style.display = 'none'; 
+                    if (input.nextElementSibling) input.nextElementSibling.style.display = 'none'; 
                     if (input.parentElement && input.parentElement.className.includes('input-group')) {
                         input.parentElement.style.display = 'none';
                     }
@@ -235,5 +251,4 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
 </body>
-
 </html>
