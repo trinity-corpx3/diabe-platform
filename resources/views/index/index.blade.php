@@ -213,10 +213,9 @@
   <style>
     @import url('https://fonts.cdnfonts.com/css/sf-pro-display');
 
-    /* Hide Invoice Ninja Branding - robust selectors */
-    img[src*="logo"],
-    img[alt*="Invoice Ninja"],
-    /* Flutter specific implementations often use background images or canvas, but let's try generic first */
+    /* Hide Invoice Ninja Branding - BUT NOT DIABE logos */
+    img[src*="invoiceninja"]:not([src*="diabe"]),
+    img[alt*="Invoice Ninja"]:not([src*="diabe"]),
     .invoiceninja-logo {
       display: none !important;
     }
@@ -236,35 +235,38 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Continuous observer to handle dynamic Flutter/React rendering
       const observer = new MutationObserver(() => {
-        // 1. Replace Logo with DIABE Platform
-        // Look for images that are likely the logo
+        // 1. Replace Invoice Ninja Logo with DIABE Logo Image
         const images = document.querySelectorAll('img');
         images.forEach(img => {
-          const src = img.getAttribute('src');
-          const alt = img.getAttribute('alt');
+          const src = img.getAttribute('src') || '';
+          const alt = img.getAttribute('alt') || '';
 
-          // Check multiple conditions for the logo
-          if ((src && (src.includes('logo') || src.includes('invoiceninja'))) ||
-            (alt && alt.toLowerCase().includes('invoice ninja'))) {
+          // Skip if already a DIABE logo
+          if (src.includes('diabe')) return;
 
+          // Check if it's an Invoice Ninja logo that needs replacing
+          if (src.includes('logo') || src.includes('invoiceninja') || alt.toLowerCase().includes('invoice ninja')) {
             if (!img.dataset.replaced) {
-              const title = document.createElement('div');
-              title.innerText = "DIABE Platform";
-              title.style.fontFamily = "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif";
-              title.style.fontSize = "32px";
-              title.style.fontWeight = "600";
-              title.style.textAlign = "center";
-              title.style.marginBottom = "24px";
-              title.style.color = "#1f2937";
-              title.style.width = "100%";
-              title.className = "diabe-branding";
+              // Determine if it's sidebar (compact) or login (large)
+              const parentRect = img.parentElement ? img.parentElement.getBoundingClientRect() : { width: 1000 };
+              const isCompact = parentRect.width < 320;
 
-              // Insert before if parent exists
-              if (img.parentNode) {
-                img.parentNode.insertBefore(title, img);
-                img.style.display = 'none';
-                img.dataset.replaced = "true";
+              // Replace the src with DIABE logo
+              img.src = '/react/diabe_logo-7pvJztAQ.jpg';
+              img.alt = 'DIABE Platform';
+
+              // Apply appropriate styling
+              if (isCompact) {
+                img.style.maxHeight = '40px';
+                img.style.width = 'auto';
+              } else {
+                img.style.maxHeight = '80px';
+                img.style.width = 'auto';
               }
+              img.style.objectFit = 'contain';
+              img.style.display = 'block';
+
+              img.dataset.replaced = "true";
             }
           }
         });

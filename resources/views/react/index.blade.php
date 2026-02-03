@@ -17,9 +17,9 @@
     <style>
         @import url('https://fonts.cdnfonts.com/css/sf-pro-display');
 
-        /* Hide Invoice Ninja Branding */
-        img[src*="logo"],
-        img[alt*="Invoice Ninja"],
+        /* Hide Invoice Ninja Branding - BUT NOT DIABE logos */
+        img[src*="invoiceninja"]:not([src*="diabe"]),
+        img[alt*="Invoice Ninja"]:not([src*="diabe"]),
         .invoiceninja-logo {
             display: none !important;
         }
@@ -50,6 +50,19 @@
         div:has(> input[name="secret"]) {
             display: none !important;
         }
+        
+        /* DIABE Logo styling */
+        .diabe-logo-img {
+            max-height: 80px;
+            width: auto;
+            object-fit: contain;
+        }
+        
+        .diabe-logo-sidebar {
+            max-height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
     </style>
 
     <script>
@@ -76,123 +89,40 @@
                 link.href = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc. --><path fill="%2325a70c" d="M96 0C60.7 0 32 28.7 32 64V448c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V64c0-35.3-28.7-64-64-64H96zM208 288h64c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16H144c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zM144 64h224c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>`;
             } catch (e) { console.log('Favicon update failed', e); }
 
-            // Helper to determine if background is dark
-            function isBackgroundDark(element) {
-                let current = element;
-                let depth = 0;
-                while (current && depth < 5) {
-                    if (current === document.body) break;
-                    const style = window.getComputedStyle(current);
-                    const bgColor = style.backgroundColor;
-                    if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
-                        const rgb = bgColor.match(/\d+/g);
-                        if (rgb && rgb.length >= 3) {
-                            const r = parseInt(rgb[0]);
-                            const g = parseInt(rgb[1]);
-                            const b = parseInt(rgb[2]);
-                            const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
-                            return luminance < 128;
-                        }
-                    }
-                    current = current.parentElement;
-                    depth++;
-                }
-                return false;
-            }
-
             const observer = new MutationObserver(() => {
-                // 1. Replace Logo with DIABE Platform + Icon
+                // 1. Replace Invoice Ninja Logo with DIABE Logo Image
                 const images = document.querySelectorAll('img');
                 images.forEach(img => {
-                    const src = img.getAttribute('src');
-                    // Check if it's the logo
-                    if (src && (src.includes('logo') || img.alt?.includes('Invoice Ninja'))) {
+                    const src = img.getAttribute('src') || '';
+                    const alt = img.getAttribute('alt') || '';
+                    
+                    // Skip if already a DIABE logo
+                    if (src.includes('diabe')) return;
+                    
+                    // Check if it's an Invoice Ninja logo that needs replacing
+                    if (src.includes('logo') || src.includes('invoiceninja') || alt.toLowerCase().includes('invoice ninja')) {
                         // Only replace if we haven't already
                         if (!img.dataset.replaced) {
-                            // Handle parent Anchor tag
-                            if (img.parentElement && img.parentElement.tagName === 'A') {
-                                img.parentElement.style.textDecoration = 'none';
-                                img.parentElement.style.pointerEvents = 'none';
-                                img.parentElement.style.cursor = 'default';
-                                img.parentElement.style.color = 'inherit';
-                            }
-
-                            // --- Smart Context Detection ---
-                            
-                            // 1. Logic for Color (Dark BG -> White Text, Light BG -> Dark Text)
-                            const isDarkBg = isBackgroundDark(img.parentElement);
-                            const textColor = isDarkBg ? "#FFFFFF" : "#1f2937";
-                            
-                            // 2. Logic for Size (Compact Container -> Small Text, Large Container -> Large Text)
+                            // Determine if it's sidebar (compact) or login (large)
                             const parentRect = img.parentElement ? img.parentElement.getBoundingClientRect() : { width: 1000 };
-                            const isCompact = parentRect.width < 320; 
-
-                            // --- Company Dropdown Cleanup ---
+                            const isCompact = parentRect.width < 320;
+                            
+                            // Replace the src with DIABE logo
+                            img.src = '/react/diabe_logo-7pvJztAQ.jpg';
+                            img.alt = 'DIABE Platform';
+                            
+                            // Apply appropriate styling
                             if (isCompact) {
-                                const siblings = img.parentElement ? Array.from(img.parentElement.children) : [];
-                                siblings.forEach(sib => {
-                                    if (sib !== img && sib.innerText && sib.innerText.trim().length > 0) {
-                                       sib.style.display = 'none';
-                                    }
-                                    if(sib.classList.contains('truncate') || sib.classList.contains('w-36')) {
-                                        sib.style.display = 'none';
-                                    }
-                                });
-                                
-                                if (img.parentElement && img.parentElement.nextElementSibling) {
-                                    const nextSib = img.parentElement.nextElementSibling;
-                                     if(nextSib.classList.contains('truncate') || nextSib.classList.contains('w-36')) {
-                                        nextSib.style.display = 'none';
-                                    }
-                                }
+                                img.style.maxHeight = '40px';
+                                img.style.width = 'auto';
+                            } else {
+                                img.style.maxHeight = '80px';
+                                img.style.width = 'auto';
                             }
-
-                            const container = document.createElement('div');
-                            container.style.display = "flex";
-                            container.style.alignItems = "center";
-                            container.style.justifyContent = isCompact ? "flex-start" : "center"; 
-                            container.style.gap = isCompact ? "10px" : "15px";
-                            container.style.marginBottom = isCompact ? "0px" : "24px";
-                            container.style.width = "100%";
-                            container.style.cursor = "default";
+                            img.style.objectFit = 'contain';
+                            img.style.display = 'block';
                             
-                            if (isCompact) {
-                                container.style.padding = "0px";
-                                container.style.overflow = "hidden";
-                            }
-
-                            // Icon
-                            const icon = document.createElement('i');
-                            icon.className = "fa-solid fa-swatchbook fa-beat-fade";
-                            icon.style.color = "#25a70c";
-                            icon.style.fontSize = isCompact ? "22px" : "36px"; 
-                            icon.style.textDecoration = "none";
-                            icon.style.border = "none";
-                            icon.style.flexShrink = "0";
-
-                            // Text
-                            const text = document.createElement('div');
-                            text.innerText = "DIABE Platform";
-                            text.style.fontFamily = "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif";
-                            
-                            // Apply Decoupled Styles
-                            text.style.color = textColor; // Based on Background
-                            text.style.fontSize = isCompact ? "18px" : "32px"; // Based on Width
-                            text.style.fontWeight = isCompact ? "500" : "600";
-                            
-                            text.style.textDecoration = "none";
-                            text.style.border = "none";
-                            text.style.lineHeight = "1.2"; 
-                            text.style.whiteSpace = "nowrap";
-
-                            container.appendChild(icon);
-                            container.appendChild(text);
-
-                            if (img.parentNode) {
-                                img.parentNode.insertBefore(container, img);
-                                img.style.display = 'none';
-                                img.dataset.replaced = "true";
-                            }
+                            img.dataset.replaced = "true";
                         }
                     }
                 });
