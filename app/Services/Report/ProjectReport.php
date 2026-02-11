@@ -63,8 +63,26 @@ class ProjectReport extends BaseExport
 
         $user_name = $user ? $user->present()->name() : '';
 
-        $query = \App\Models\Project::with(['invoices','expenses','tasks'])
-                                ->where('company_id', $this->company->id);
+        $start_date = $this->input['start_date'] ?? null;
+        $end_date = $this->input['end_date'] ?? null;
+
+        $query = \App\Models\Project::with([
+            'expenses',
+            'tasks',
+            'invoices' => function ($invoice_query) use ($start_date, $end_date) {
+                $invoice_query->where('is_deleted', 0)
+                              ->whereNull('deleted_at')
+                              ->whereIn('status_id', [
+                                  Invoice::STATUS_SENT,
+                                  Invoice::STATUS_PARTIAL,
+                                  Invoice::STATUS_PAID,
+                              ]);
+
+                if ($start_date && $end_date) {
+                    $invoice_query->whereBetween('date', [$start_date, $end_date]);
+                }
+            },
+        ])->where('company_id', $this->company->id);
 
         $query = $this->filterByUserPermissions($query);
 

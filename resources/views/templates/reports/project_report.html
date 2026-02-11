@@ -196,6 +196,10 @@
         </table>
         {% endif %}
         
+        {% set total_amount = 0 %}
+        {% set total_balance = 0 %}
+        {% set total_expense_amount = 0 %}
+
         {% if project.invoices %}
         <div style="text-align: center;">
             <h2>{{ t('invoices') }}</h2>
@@ -210,8 +214,6 @@
                 </tr>
             </thead>
             <tbody>
-                {% set total_amount = 0 %}
-                {% set total_balance = 0 %}
                 {% for invoice in project.invoices %}
                 <tr>
                     <td>{{ invoice.date }}</td>
@@ -247,7 +249,6 @@
                 </tr>
             </thead>
             <tbody>
-                {% set total_expense_amount = 0 %}
                 {% for expense in project.expenses %}
                 <tr>
                     <td>{{ expense.date }}</td>
