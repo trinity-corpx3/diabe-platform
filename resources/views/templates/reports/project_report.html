@@ -199,6 +199,8 @@
         {% set total_amount = 0 %}
         {% set total_balance = 0 %}
         {% set total_expense_amount = 0 %}
+        {% set total_payment_amount = 0 %}
+        {% set has_payments = false %}
 
         {% if project.invoices %}
         <div style="text-align: center;">
@@ -209,6 +211,9 @@
                 <tr>
                     <th>{{ t('date')}}</th>
                     <th>{{ t('invoice_number')}}</th>
+                    <th>{{ t('client') }}</th>
+                    <th>{{ t('project') }}</th>
+                    <th>{{ t('vendor') }}</th>
                     <th>{{ t('amount') }}</th>
                     <th>{{ t('balance') }}</th>
                 </tr>
@@ -218,15 +223,24 @@
                 <tr>
                     <td>{{ invoice.date }}</td>
                     <td>{{ invoice.number }}</td>
+                    <td>{{ invoice.client.name|default('') }}</td>
+                    <td>{{ project.name }}</td>
+                    <td>-</td>
                     <td>{{ invoice.amount_raw|number_format(2, '.', ',') }}</td>
                     <td>{{ invoice.balance_raw|number_format(2, '.', ',') }}</td>
                 </tr>
                 {% set total_amount = total_amount + invoice.amount_raw %}
                 {% set total_balance = total_balance + invoice.balance_raw %}
+                {% if invoice.payments %}
+                {% set has_payments = true %}
+                {% endif %}
                 {% endfor%}
             </tbody>
             <tfoot>
                 <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td>{{ total_amount|number_format(2, '.', ',') }}</td>
@@ -245,6 +259,9 @@
                 <tr>
                     <th>{{ t('date')}}</th>
                     <th>{{ t('number')}}</th>
+                    <th>{{ t('vendor') }}</th>
+                    <th>{{ t('client') }}</th>
+                    <th>{{ t('project') }}</th>
                     <th>{{ t('amount') }}</th>
                 </tr>
             </thead>
@@ -253,6 +270,9 @@
                 <tr>
                     <td>{{ expense.date }}</td>
                     <td>{{ expense.number }}</td>
+                    <td>{{ expense.vendor.name|default('') }}</td>
+                    <td>{{ expense.client.name|default('') }}</td>
+                    <td>{{ expense.project.name|default(project.name) }}</td>
                     <td>{{ expense.amount_raw|number_format(2, '.', ',') }}</td>
                 </tr>
                 {% set total_expense_amount = total_expense_amount + expense.amount_raw %}
@@ -262,7 +282,59 @@
                 <tr>
                     <td></td>
                     <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
                     <td>{{ total_expense_amount|number_format(2, '.', ',') }}</td>
+                </tr>
+            </tfoot>
+        </table>
+        {% endif %}
+
+        {% if has_payments %}
+        <div style="text-align: center;">
+            <h2>{{ t('payments') }}</h2>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>{{ t('date') }}</th>
+                    <th>{{ t('number') }}</th>
+                    <th>{{ t('invoice_number') }}</th>
+                    <th>{{ t('vendor') }}</th>
+                    <th>{{ t('client') }}</th>
+                    <th>{{ t('project') }}</th>
+                    <th>{{ t('status') }}</th>
+                    <th>{{ t('amount') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in project.invoices %}
+                {% for payment in invoice.payments %}
+                <tr>
+                    <td>{{ payment.date }}</td>
+                    <td>{{ payment.number }}</td>
+                    <td>{{ invoice.number }}</td>
+                    <td>-</td>
+                    <td>{{ payment.client.name|default('') }}</td>
+                    <td>{{ project.name }}</td>
+                    <td>{{ payment.status }}</td>
+                    <td>{{ payment.amount_raw|number_format(2, '.', ',') }}</td>
+                </tr>
+                {% set total_payment_amount = total_payment_amount + payment.amount_raw %}
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>{{ total_payment_amount|number_format(2, '.', ',') }}</td>
                 </tr>
             </tfoot>
         </table>

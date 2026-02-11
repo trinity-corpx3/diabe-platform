@@ -67,7 +67,15 @@ class ProjectReport extends BaseExport
         $end_date = $this->input['end_date'] ?? null;
 
         $query = \App\Models\Project::with([
-            'expenses',
+            'expenses' => function ($expense_query) use ($start_date, $end_date) {
+                $expense_query->where('is_deleted', 0)
+                              ->whereNull('deleted_at')
+                              ->whereNotNull('payment_date');
+
+                if ($start_date && $end_date) {
+                    $expense_query->whereBetween('payment_date', [$start_date, $end_date]);
+                }
+            },
             'tasks',
             'invoices' => function ($invoice_query) use ($start_date, $end_date) {
                 $invoice_query->where('is_deleted', 0)
