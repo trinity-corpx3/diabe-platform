@@ -1225,6 +1225,7 @@ class TemplateService
             'assigned_user' => $project->assigned_user ? $this->userInfo($project->assigned_user) : [],
             'invoices' => !$nested ? $this->processInvoices($project->invoices) : [],
             'expenses' => ($project->expenses && !$nested) ? $this->processExpenses($project->expenses, true) : [],
+            'financial_summary' => !$nested ? $project->financialSummary() : [],
         ];
 
     }

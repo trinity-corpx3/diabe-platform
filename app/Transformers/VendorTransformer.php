@@ -13,9 +13,12 @@
 namespace App\Transformers;
 
 use App\Models\Vendor;
+use App\Models\Expense;
+use App\Models\Payment;
 use App\Models\Activity;
 use App\Models\Document;
 use App\Models\Location;
+use App\Models\PurchaseOrder;
 use App\Models\VendorContact;
 use App\Utils\Traits\MakesHash;
 
@@ -37,6 +40,9 @@ class VendorTransformer extends EntityTransformer
     protected array $availableIncludes = [
         'activities',
         'locations',
+        'expenses',
+        'payments',
+        'purchase_orders',
     ];
 
     /**
@@ -80,6 +86,27 @@ class VendorTransformer extends EntityTransformer
         $transformer = new LocationTransformer($this->serializer);
 
         return $this->includeCollection($vendor->locations, $transformer, Location::class);
+    }
+
+    public function includeExpenses(Vendor $vendor)
+    {
+        $transformer = new ExpenseTransformer($this->serializer);
+
+        return $this->includeCollection($vendor->expenses, $transformer, Expense::class);
+    }
+
+    public function includePayments(Vendor $vendor)
+    {
+        $transformer = new PaymentTransformer($this->serializer);
+
+        return $this->includeCollection($vendor->payments, $transformer, Payment::class);
+    }
+
+    public function includePurchaseOrders(Vendor $vendor)
+    {
+        $transformer = new PurchaseOrderTransformer($this->serializer);
+
+        return $this->includeCollection($vendor->purchase_orders, $transformer, PurchaseOrder::class);
     }
 
     /**

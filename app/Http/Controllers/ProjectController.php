@@ -611,4 +611,14 @@ class ProjectController extends BaseController
 
         return $this->itemResponse($invoice);
     }
+
+    /**
+     * Returns the financial summary for a project:
+     * total_invoiced, total_paid_by_client, pending_collection,
+     * total_expenses, total_expenses_pending, profit.
+     */
+    public function summary(ShowProjectRequest $request, Project $project)
+    {
+        return response()->json(['data' => $project->financialSummary()]);
+    }
 }

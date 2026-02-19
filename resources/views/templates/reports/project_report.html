@@ -340,6 +340,39 @@
         </table>
         {% endif %}
 
+        {% if project.expenses %}
+        <div style="text-align: center;">
+            <h2>{{ t('expenses') }} - {{ t('vendor') }}</h2>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>{{ t('vendor') }}</th>
+                    <th>{{ t('amount') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set vendor_totals = {} %}
+                {% for expense in project.expenses %}
+                    {% set vname = expense.vendor.name|default('Sin proveedor') %}
+                    {% set vendor_totals = vendor_totals|merge({ (vname): (vendor_totals[vname]|default(0)) + expense.amount_raw }) %}
+                {% endfor %}
+                {% for vname, vtotal in vendor_totals %}
+                <tr>
+                    <td>{{ vname }}</td>
+                    <td>{{ vtotal|number_format(2, '.', ',') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td><strong>Total</strong></td>
+                    <td>{{ total_expense_amount|number_format(2, '.', ',') }}</td>
+                </tr>
+            </tfoot>
+        </table>
+        {% endif %}
+
         <table>
             <thead>
                 <tr>
@@ -361,13 +394,24 @@
                     <td>{{ total_amount|number_format(2, '.', ',') }}</td>
                 </tr>
                 <tr>
-                    <td>{{ t('expenses') }}</td>
+                    <td>{{ t('paid') }}</td>
+                    <td>{{ (project.financial_summary.total_paid_by_client|default(total_payment_amount))|number_format(2, '.', ',') }}</td>
+                </tr>
+                <tr>
+                    <td>{{ t('balance') }}</td>
+                    <td>{{ (project.financial_summary.pending_collection|default(total_balance))|number_format(2, '.', ',') }}</td>
+                </tr>
+                <tr>
+                    <td>{{ t('expenses') }} ({{ t('paid') }})</td>
                     <td>{{ total_expense_amount|number_format(2, '.', ',') }}</td>
                 </tr>
-                
                 <tr>
-                    <td>{{ t('profit') }}</td>
-                    <td>{{ (total_amount - total_expense_amount)|number_format(2, '.', ',') }}</td>
+                    <td>{{ t('expenses') }} ({{ t('pending') }})</td>
+                    <td>{{ (project.financial_summary.total_expenses_pending|default(0))|number_format(2, '.', ',') }}</td>
+                </tr>
+                <tr>
+                    <td><strong>{{ t('profit') }}</strong></td>
+                    <td><strong>{{ (total_amount - total_expense_amount)|number_format(2, '.', ',') }}</strong></td>
                 </tr>
             </tbody>
         </table>

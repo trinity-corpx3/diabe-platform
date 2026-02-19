@@ -201,6 +201,88 @@ class Project extends BaseModel
         return $this->hasMany(Quote::class);
     }
 
+    public function payments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Total invoiced from valid (Sent/Partial/Paid, not deleted) invoices.
+     */
+    public function calcTotalInvoiced(): float
+    {
+        return (float) $this->invoices()
+            ->whereNull('deleted_at')
+            ->where('is_deleted', 0)
+            ->whereIn('status_id', [
+                Invoice::STATUS_SENT,
+                Invoice::STATUS_PARTIAL,
+                Invoice::STATUS_PAID,
+            ])
+            ->sum('amount');
+    }
+
+    /**
+     * Total collected via completed payments linked to this project.
+     */
+    public function calcTotalPaid(): float
+    {
+        return (float) $this->payments()
+            ->whereNull('deleted_at')
+            ->where('is_deleted', 0)
+            ->whereIn('status_id', [
+                Payment::STATUS_COMPLETED,
+                Payment::STATUS_PARTIALLY_REFUNDED,
+                Payment::STATUS_PENDING,
+            ])
+            ->selectRaw('SUM(amount - refunded) as total')
+            ->value('total') ?? 0;
+    }
+
+    /**
+     * Total expenses already paid (with payment_date).
+     */
+    public function calcTotalExpenses(): float
+    {
+        return (float) $this->expenses()
+            ->whereNull('deleted_at')
+            ->where('is_deleted', 0)
+            ->whereNotNull('payment_date')
+            ->sum('amount');
+    }
+
+    /**
+     * Total expenses registered but not yet paid (no payment_date).
+     */
+    public function calcTotalExpensesPending(): float
+    {
+        return (float) $this->expenses()
+            ->whereNull('deleted_at')
+            ->where('is_deleted', 0)
+            ->whereNull('payment_date')
+            ->sum('amount');
+    }
+
+    /**
+     * Full financial summary for this project.
+     */
+    public function financialSummary(): array
+    {
+        $total_invoiced = $this->calcTotalInvoiced();
+        $total_paid = $this->calcTotalPaid();
+        $total_expenses = $this->calcTotalExpenses();
+        $total_expenses_pending = $this->calcTotalExpensesPending();
+
+        return [
+            'total_invoiced' => round($total_invoiced, 2),
+            'total_paid_by_client' => round($total_paid, 2),
+            'pending_collection' => round($total_invoiced - $total_paid, 2),
+            'total_expenses' => round($total_expenses, 2),
+            'total_expenses_pending' => round($total_expenses_pending, 2),
+            'profit' => round($total_invoiced - $total_expenses, 2),
+        ];
+    }
+
     /**
     * Service entry points.
     *

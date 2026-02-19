@@ -16,6 +16,7 @@ use App\Models\Task;
 use App\Models\Quote;
 use App\Models\Client;
 use App\Models\Project;
+use App\Models\Payment;
 use App\Models\Document;
 use App\Models\Expense;
 use App\Models\Invoice;
@@ -41,6 +42,7 @@ class ProjectTransformer extends EntityTransformer
         'invoices',
         'expenses',
         'quotes',
+        'payments',
     ];
 
     public function includeDocuments(Project $project)
@@ -95,8 +97,17 @@ class ProjectTransformer extends EntityTransformer
         return $this->includeCollection($project->quotes, $transformer, Quote::class);
     }
 
+    public function includePayments(Project $project): \League\Fractal\Resource\Collection
+    {
+        $transformer = new PaymentTransformer($this->serializer);
+
+        return $this->includeCollection($project->payments, $transformer, Payment::class);
+    }
+
     public function transform(Project $project)
     {
+        $summary = $project->financialSummary();
+
         return [
             'id' => (string) $this->encodePrimaryKey($project->id),
             'user_id' => (string) $this->encodePrimaryKey($project->user_id),
@@ -119,6 +130,12 @@ class ProjectTransformer extends EntityTransformer
             'custom_value4' => (string) $project->custom_value4 ?: '',
             'color' => (string) $project->color ?: '',
             'current_hours' => (int) $project->current_hours ?: 0,
+            'total_invoiced' => (float) $summary['total_invoiced'],
+            'total_paid_by_client' => (float) $summary['total_paid_by_client'],
+            'pending_collection' => (float) $summary['pending_collection'],
+            'total_expenses' => (float) $summary['total_expenses'],
+            'total_expenses_pending' => (float) $summary['total_expenses_pending'],
+            'profit' => (float) $summary['profit'],
         ];
     }
 }
