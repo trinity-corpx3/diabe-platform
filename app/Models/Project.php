@@ -276,13 +276,19 @@ class Project extends BaseModel
         $total_expenses = $this->calcTotalExpenses();
         $total_expenses_pending = $this->calcTotalExpensesPending();
 
+        $profit = round($total_paid - $total_expenses, 2);
+        $profitability = $total_invoiced > 0
+            ? round(($profit / $total_invoiced) * 100, 1)
+            : 0.0;
+
         return [
             'total_invoiced' => round($total_invoiced, 2),
             'total_paid_by_client' => round($total_paid, 2),
             'pending_collection' => round($total_invoiced - $total_paid, 2),
             'total_expenses' => round($total_expenses, 2),
             'total_expenses_pending' => round($total_expenses_pending, 2),
-            'profit' => round($total_paid - $total_expenses, 2),
+            'profit' => $profit,
+            'profitability' => $profitability,
         ];
     }
 
