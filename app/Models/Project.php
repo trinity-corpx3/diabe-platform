@@ -227,7 +227,9 @@ class Project extends BaseModel
      */
     public function calcTotalPaid(): float
     {
-        return (float) $this->invoices()
+        $invoiced = $this->calcTotalInvoiced();
+
+        $balance = (float) $this->invoices()
             ->whereNull('deleted_at')
             ->where('is_deleted', 0)
             ->whereIn('status_id', [
@@ -235,8 +237,9 @@ class Project extends BaseModel
                 Invoice::STATUS_PARTIAL,
                 Invoice::STATUS_PAID,
             ])
-            ->selectRaw('COALESCE(SUM(amount - balance), 0) as total')
-            ->value('total');
+            ->sum('balance');
+
+        return $invoiced - $balance;
     }
 
     /**
