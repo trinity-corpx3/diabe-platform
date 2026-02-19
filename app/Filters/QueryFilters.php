@@ -276,6 +276,15 @@ abstract class QueryFilters
         return $this->builder->where('vendor_id', $this->decodePrimaryKey($vendor_id));
     }
 
+    public function project_id(string $project_id = ''): Builder
+    {
+        if (strlen($project_id) == 0 || !in_array('project_id', \Illuminate\Support\Facades\Schema::getColumnListing($this->builder->getModel()->getTable()))) {
+            return $this->builder;
+        }
+
+        return $this->builder->where('project_id', $this->decodePrimaryKey($project_id));
+    }
+
     public function filter_deleted_clients($value)
     {
         if ($value == 'true') {
