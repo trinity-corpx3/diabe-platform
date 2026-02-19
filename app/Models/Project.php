@@ -223,20 +223,20 @@ class Project extends BaseModel
     }
 
     /**
-     * Total collected via completed payments linked to this project.
+     * Total collected from client, derived from invoice (amount - balance).
      */
     public function calcTotalPaid(): float
     {
-        return (float) $this->payments()
+        return (float) $this->invoices()
             ->whereNull('deleted_at')
             ->where('is_deleted', 0)
             ->whereIn('status_id', [
-                Payment::STATUS_COMPLETED,
-                Payment::STATUS_PARTIALLY_REFUNDED,
-                Payment::STATUS_PENDING,
+                Invoice::STATUS_SENT,
+                Invoice::STATUS_PARTIAL,
+                Invoice::STATUS_PAID,
             ])
-            ->selectRaw('SUM(amount - refunded) as total')
-            ->value('total') ?? 0;
+            ->selectRaw('COALESCE(SUM(amount - balance), 0) as total')
+            ->value('total');
     }
 
     /**
@@ -279,7 +279,7 @@ class Project extends BaseModel
             'pending_collection' => round($total_invoiced - $total_paid, 2),
             'total_expenses' => round($total_expenses, 2),
             'total_expenses_pending' => round($total_expenses_pending, 2),
-            'profit' => round($total_invoiced - $total_expenses, 2),
+            'profit' => round($total_paid - $total_expenses, 2),
         ];
     }
 
