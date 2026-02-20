@@ -40,7 +40,7 @@ class BankStatementController extends BaseController
         $paymentsQuery = Payment::where('company_id', $companyId)
             ->whereNull('deleted_at')
             ->where('is_deleted', 0)
-            ->where('status_id', '!=', Payment::STATUS_VOIDED)
+            ->whereIn('status_id', [Payment::STATUS_COMPLETED, Payment::STATUS_PARTIALLY_REFUNDED])
             ->whereBetween('date', [$dateFrom, $dateTo]);
 
         if ($decodedProjectId) {
@@ -223,7 +223,7 @@ class BankStatementController extends BaseController
         $pq = Payment::where('company_id', $companyId)
             ->whereNull('deleted_at')
             ->where('is_deleted', 0)
-            ->where('status_id', '!=', Payment::STATUS_VOIDED)
+            ->whereIn('status_id', [Payment::STATUS_COMPLETED, Payment::STATUS_PARTIALLY_REFUNDED])
             ->where('date', '<', $dateFrom);
         if ($projectId) {
             $pq->where('project_id', $projectId);
