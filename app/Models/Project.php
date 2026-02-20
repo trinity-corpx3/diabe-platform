@@ -308,7 +308,7 @@ class Project extends BaseModel
         $payments = $this->payments()
             ->whereNull('deleted_at')
             ->where('is_deleted', 0)
-            ->where('status_id', '!=', Payment::STATUS_VOIDED)
+            ->whereIn('status_id', [Payment::STATUS_COMPLETED, Payment::STATUS_PARTIALLY_REFUNDED])
             ->with('invoices')
             ->get();
 
