@@ -13,6 +13,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SNSController;
 use App\Http\Controllers\BaseController;
+use App\Http\Controllers\BankStatementController;
 use App\Http\Controllers\PingController;
 use App\Http\Controllers\SmtpController;
 use App\Http\Controllers\TaskController;
@@ -462,6 +463,11 @@ Route::group(['middleware' => ['throttle:api', 'token_auth', 'valid_json','local
     Route::post('subscriptions/bulk', [SubscriptionController::class, 'bulk'])->name('subscriptions.bulk');
     Route::get('statics', StaticController::class);
     // Route::post('apple_pay/upload_file','ApplyPayController::class, 'upload');
+
+    Route::get('bank-statement', [BankStatementController::class, 'index']);
+    Route::post('bank-entries', [BankStatementController::class, 'store']);
+    Route::put('bank-entries/{id}', [BankStatementController::class, 'update']);
+    Route::delete('bank-entries/{id}', [BankStatementController::class, 'destroy']);
 
     Route::post('yodlee/status/{account_number}', [YodleeController::class, 'accountStatus']); // @todo @turbo124 check route-path?!
 

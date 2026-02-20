@@ -281,6 +281,11 @@ class Project extends BaseModel
             ? round(($profit / $total_invoiced) * 100, 1)
             : 0.0;
 
+        // IVA from client payments applied to this project's invoices
+        $iva_cobrado = $this->calcIvaCobrado();
+        // IVA from paid expenses
+        $iva_acreditado = $this->calcIvaAcreditado();
+
         return [
             'total_invoiced' => round($total_invoiced, 2),
             'total_paid_by_client' => round($total_paid, 2),
@@ -289,7 +294,59 @@ class Project extends BaseModel
             'total_expenses_pending' => round($total_expenses_pending, 2),
             'profit' => $profit,
             'profitability' => $profitability,
+            'iva_cobrado' => round($iva_cobrado, 2),
+            'iva_acreditado' => round($iva_acreditado, 2),
+            'iva_por_pagar' => round($iva_cobrado - $iva_acreditado, 2),
         ];
+    }
+
+    /**
+     * IVA collected: derived from payments applied to this project's invoices.
+     */
+    public function calcIvaCobrado(): float
+    {
+        $payments = $this->payments()
+            ->whereNull('deleted_at')
+            ->where('is_deleted', 0)
+            ->where('status_id', '!=', Payment::STATUS_VOIDED)
+            ->with('invoices')
+            ->get();
+
+        $total = 0.0;
+
+        foreach ($payments as $payment) {
+            foreach ($payment->invoices as $invoice) {
+                if ($invoice->pivot->deleted_at) {
+                    continue;
+                }
+                $applied = (float) $invoice->pivot->amount;
+                $rate = (float) ($invoice->tax_rate1 ?? 0);
+                if ($rate > 0 && $applied > 0) {
+                    $total += $applied * $rate / (100 + $rate);
+                }
+            }
+        }
+
+        return $total;
+    }
+
+    /**
+     * IVA credited: sum of tax amounts from paid expenses.
+     */
+    public function calcIvaAcreditado(): float
+    {
+        $expenses = $this->expenses()
+            ->whereNull('deleted_at')
+            ->where('is_deleted', 0)
+            ->whereNotNull('payment_date')
+            ->get();
+
+        $total = 0.0;
+        foreach ($expenses as $expense) {
+            $total += $expense->getTaxAmount();
+        }
+
+        return $total;
     }
 
     /**

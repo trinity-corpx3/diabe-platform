@@ -137,6 +137,9 @@ class ProjectTransformer extends EntityTransformer
             'total_expenses_pending' => (float) $summary['total_expenses_pending'],
             'profit' => (float) $summary['profit'],
             'profitability' => (float) $summary['profitability'],
+            'iva_cobrado' => (float) $summary['iva_cobrado'],
+            'iva_acreditado' => (float) $summary['iva_acreditado'],
+            'iva_por_pagar' => (float) $summary['iva_por_pagar'],
         ];
     }
 }
