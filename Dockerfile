@@ -73,6 +73,10 @@ COPY --chown=invoiceninja:invoiceninja resources/views /var/www/app/resources/vi
 COPY --chown=invoiceninja:invoiceninja app /var/www/app/app
 COPY --chown=invoiceninja:invoiceninja verify_whitelabel.php /var/www/app/verify_whitelabel.php
 
+# Copy custom routes and migrations
+COPY --chown=invoiceninja:invoiceninja routes/api.php /var/www/app/routes/api.php
+COPY --chown=invoiceninja:invoiceninja database/migrations /var/www/app/database/migrations
+
 # Copy public assets to custom directory to persist them in image
 # IMPORTANT: Force rebuild - v2026.02.03.2200
 ARG CACHEBUST=1
