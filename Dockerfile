@@ -95,27 +95,16 @@ RUN ls -la /var/www/app/custom_public/react/ | head -5 && \
     ls /var/www/app/custom_public/react/ | wc -l
 
 
-# Create storage symlink (Laravel needs public/storage → storage/app/public)
+# Create storage symlink and ensure directory exists at build time
+# The symlink survives because it's in public/ (not in the storage volume)
+# The directory will be populated by the volume at runtime
 RUN rm -rf /var/www/app/public/storage && \
-    ln -sf /var/www/app/storage/app/public /var/www/app/public/storage
+    ln -sf /var/www/app/storage/app/public /var/www/app/public/storage && \
+    mkdir -p /var/www/app/storage/app/public && \
+    chown -R invoiceninja:invoiceninja /var/www/app/storage/app/public
 
-# Startup script: ensure storage directories exist in the volume at runtime
-RUN printf '#!/bin/sh\nmkdir -p /var/www/app/storage/app/public\nchown -R invoiceninja:invoiceninja /var/www/app/storage/app/public\n' > /usr/local/bin/storage-init.sh && \
-    chmod +x /usr/local/bin/storage-init.sh
-
-# Update supervisor to include nginx and storage init
+# Update supervisor to include nginx (no storage-init to avoid shutdown listener crash)
 RUN echo "" >> /etc/supervisord.conf && \
-    echo "[program:storage-init]" >> /etc/supervisord.conf && \
-    echo "command=/usr/local/bin/storage-init.sh" >> /etc/supervisord.conf && \
-    echo "autostart=true" >> /etc/supervisord.conf && \
-    echo "autorestart=false" >> /etc/supervisord.conf && \
-    echo "startsecs=0" >> /etc/supervisord.conf && \
-    echo "priority=1" >> /etc/supervisord.conf && \
-    echo "stdout_logfile=/dev/stdout" >> /etc/supervisord.conf && \
-    echo "stdout_logfile_maxbytes=0" >> /etc/supervisord.conf && \
-    echo "stderr_logfile=/dev/stderr" >> /etc/supervisord.conf && \
-    echo "stderr_logfile_maxbytes=0" >> /etc/supervisord.conf && \
-    echo "" >> /etc/supervisord.conf && \
     echo "[program:nginx]" >> /etc/supervisord.conf && \
     echo "command=nginx -g 'daemon off;'" >> /etc/supervisord.conf && \
     echo "autostart=true" >> /etc/supervisord.conf && \
