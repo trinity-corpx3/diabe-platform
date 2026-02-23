@@ -231,7 +231,18 @@
       display: none !important;
     }
   </style>
+  @php
+      $companyLogo = '';
+      try {
+          $company = \App\Models\Company::first();
+          if ($company && $company->settings && !empty($company->settings->company_logo)) {
+              $companyLogo = $company->settings->company_logo;
+          }
+      } catch (\Exception $e) {}
+  @endphp
   <script>
+    const __diabeLogoUrl = '{{ $companyLogo }}';
+
     document.addEventListener('DOMContentLoaded', () => {
       // Continuous observer to handle dynamic Flutter/React rendering
       const observer = new MutationObserver(() => {
@@ -242,27 +253,19 @@
           const alt = img.getAttribute('alt') || '';
 
           // Skip if already a DIABE logo
-          if (src.includes('diabe')) return;
+          if (src.includes('diabe') || src.includes('storage')) return;
 
           // Check if it's an Invoice Ninja logo that needs replacing
           if (src.includes('logo') || src.includes('invoiceninja') || alt.toLowerCase().includes('invoice ninja')) {
-            if (!img.dataset.replaced) {
-              // Determine if it's sidebar (compact) or login (large)
+            if (!img.dataset.replaced && __diabeLogoUrl) {
               const parentRect = img.parentElement ? img.parentElement.getBoundingClientRect() : { width: 1000 };
               const isCompact = parentRect.width < 320;
 
-              // Replace the src with DIABE logo
-              img.src = '/react/diabe_logo-7pvJztAQ.jpg';
+              img.src = __diabeLogoUrl;
               img.alt = 'DIABE Platform';
 
-              // Apply appropriate styling
-              if (isCompact) {
-                img.style.maxHeight = '40px';
-                img.style.width = 'auto';
-              } else {
-                img.style.maxHeight = '80px';
-                img.style.width = 'auto';
-              }
+              img.style.maxHeight = isCompact ? '40px' : '80px';
+              img.style.width = 'auto';
               img.style.objectFit = 'contain';
               img.style.display = 'block';
 
