@@ -45,6 +45,12 @@ server {
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
+    # Serve uploaded files (logos, documents) from persistent storage volume
+    location /storage {
+        alias /var/www/app/storage/app/public;
+        try_files \$uri \$uri/ =404;
+    }
+
     # Serve React assets from custom directory to bypass volume masking
     location /react {
         root /var/www/app/custom_public;
