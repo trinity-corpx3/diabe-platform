@@ -234,7 +234,9 @@
   @php
       $companyLogo = '';
       try {
-          $company = \App\Models\Company::first();
+          $company = \App\Models\Company::whereNotNull('settings->company_logo')
+              ->where('settings->company_logo', '!=', '')
+              ->first() ?? \App\Models\Company::first();
           if ($company) {
               $logoUrl = $company->present()->logo();
               if ($logoUrl && !str_contains($logoUrl, 'diabe_logo.jpg')) {
@@ -244,7 +246,7 @@
       } catch (\Exception $e) {}
   @endphp
   <script>
-    const __diabeLogoUrl = {!! json_encode($companyLogo ?: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='100' y='42' text-anchor='middle' font-family='SF Pro Display,-apple-system,sans-serif' font-size='36' font-weight='700' fill='%2325a70c'%3EDIABE%3C/text%3E%3C/svg%3E") !!};
+    window.__diabeLogoUrl = {!! json_encode($companyLogo ?: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='100' y='42' text-anchor='middle' font-family='SF Pro Display,-apple-system,sans-serif' font-size='36' font-weight='700' fill='%2325a70c'%3EDIABE%3C/text%3E%3C/svg%3E") !!};
 
     document.addEventListener('DOMContentLoaded', () => {
       // Continuous observer to handle dynamic Flutter/React rendering
@@ -264,7 +266,7 @@
               const parentRect = img.parentElement ? img.parentElement.getBoundingClientRect() : { width: 1000 };
               const isCompact = parentRect.width < 320;
 
-              img.src = __diabeLogoUrl;
+              img.src = window.__diabeLogoUrl;
               img.alt = 'DIABE Platform';
 
               img.style.setProperty('max-height', isCompact ? '40px' : '80px', 'important');
