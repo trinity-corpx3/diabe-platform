@@ -69,14 +69,17 @@
         $companyLogo = '';
         try {
             $company = \App\Models\Company::first();
-            if ($company && $company->settings && !empty($company->settings->company_logo)) {
-                $companyLogo = $company->settings->company_logo;
+            if ($company) {
+                $logoUrl = $company->present()->logo();
+                if ($logoUrl && !str_contains($logoUrl, 'diabe_logo.jpg')) {
+                    $companyLogo = $logoUrl;
+                }
             }
         } catch (\Exception $e) {}
     @endphp
 
     <script>
-        const __diabeLogoUrl = '{{ $companyLogo }}' || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='100' y='42' text-anchor='middle' font-family='SF Pro Display,-apple-system,sans-serif' font-size='36' font-weight='700' fill='%2325a70c'%3EDIABE%3C/text%3E%3C/svg%3E";
+        const __diabeLogoUrl = {!! json_encode($companyLogo ?: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='100' y='42' text-anchor='middle' font-family='SF Pro Display,-apple-system,sans-serif' font-size='36' font-weight='700' fill='%2325a70c'%3EDIABE%3C/text%3E%3C/svg%3E") !!};
 
         // Persistent Title Updater
         const targetTitle = "DIABE Platform";
