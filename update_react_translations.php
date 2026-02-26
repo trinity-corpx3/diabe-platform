@@ -49,6 +49,19 @@ foreach ($files as $file) {
         }
     }
 
+    // Decode and inject missing translation keys dynamically
+    $json = json_decode($new_content, true);
+    if (json_last_error() === JSON_ERROR_NONE && is_array($json)) {
+        $json['total_paid'] = 'Total Pagado';
+        $json['total_expenses'] = 'Total Gastos';
+
+        // Add exact match literal overwrites for hardcoded displays
+        $json['TOTAL_PAID'] = 'Total Pagado';
+        $json['TOTAL EXPENSES'] = 'Total Gastos';
+
+        $new_content = json_encode($json, JSON_UNESCAPED_UNICODE);
+    }
+
     if ($new_content !== $content) {
         if (file_put_contents($file, $new_content) !== false) {
             echo "Successfully updated " . basename($file) . "\n";
