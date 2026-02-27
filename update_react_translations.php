@@ -5,10 +5,13 @@
  */
 
 // Define the directory containing the React translation JSON files
-$dir = __DIR__ . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'react' . DIRECTORY_SEPARATOR;
+$dir = __DIR__ . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR;
 
-// Find all Spanish translation files (and any others that might be relevant)
-$files = glob($dir . 'es*.json');
+// Find all Spanish translation files (check both root public/ and public/react/)
+$files = array_merge(
+    glob($dir . 'es*.json'),
+    glob($dir . 'react' . DIRECTORY_SEPARATOR . 'es*.json')
+);
 
 echo "Found " . count($files) . " files to process.\n";
 
