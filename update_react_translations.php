@@ -59,6 +59,34 @@ foreach ($files as $file) {
         $json['TOTAL_PAID'] = 'Total Pagado';
         $json['TOTAL EXPENSES'] = 'Total Gastos';
 
+        // Cuentas por Pagar (AP Aging)
+        $json['cuentas_por_pagar'] = 'Cuentas por Pagar';
+        $json['al_corriente'] = 'Al Corriente';
+        $json['proximo_a_vencer'] = 'Próximo a Vencer';
+        $json['vencido'] = 'Vencido';
+        $json['pending'] = 'Pendiente';
+        $json['days'] = 'Días';
+
+        // Nómina (Payroll)
+        $json['nomina'] = 'Nómina';
+        $json['salarios'] = 'Salarios';
+        $json['salario_diario'] = 'Salario Diario';
+        $json['salario'] = 'Salario';
+        $json['impuesto_estatal'] = 'Imp. Estatal';
+        $json['neto_estimado'] = 'Neto Estimado';
+        $json['nuevo_registro'] = 'Nuevo Registro';
+        $json['worker_name'] = 'Nombre del Trabajador';
+        $json['sin_proyecto'] = 'Sin Proyecto';
+        $json['asistio'] = 'Asistió';
+        $json['asistencia'] = 'Asistencia';
+        $json['semana'] = 'Semana';
+        $json['trabajadores'] = 'Trabajadores';
+        $json['bruto'] = 'Bruto';
+        $json['impuestos'] = 'Impuestos';
+        $json['neto'] = 'Neto';
+        $json['day'] = 'Día';
+        $json['nomina_empty_hint'] = 'Haz clic en "Nuevo Registro" para capturar la primera entrada de nómina.';
+
         $new_content = json_encode($json, JSON_UNESCAPED_UNICODE);
     }
 
