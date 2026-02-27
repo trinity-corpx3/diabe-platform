@@ -168,15 +168,15 @@ class Vendor extends BaseModel
         $name = ctrans('texts.vendor') . " | " . $this->present()->name();
 
         if (strlen($this->vat_number ?? '') > 1) {
-            $name .= " | ". $this->vat_number;
+            $name .= " | " . $this->vat_number;
         }
 
         return [
-            'id' => $this->company->db.":".$this->id,
+            'id' => $this->company->db . ":" . $this->id,
             'name' => $name,
-            'is_deleted' => (bool)$this->is_deleted,
+            'is_deleted' => (bool) $this->is_deleted,
             'hashed_id' => $this->hashed_id,
-            'number' => (string)$this->number,
+            'number' => (string) $this->number,
             'id_number' => $this->id_number,
             'vat_number' => $this->vat_number,
             'phone' => $this->phone,
@@ -198,7 +198,7 @@ class Vendor extends BaseModel
 
     public function getScoutKey()
     {
-        return $this->company->db.":".$this->id;
+        return $this->company->db . ":" . $this->id;
     }
 
     protected $presenter = VendorPresenter::class;
@@ -258,8 +258,8 @@ class Vendor extends BaseModel
             }
 
             return $currencies->first(function ($item) {
-                    return $item->id == $this->currency_id;
-                });
+                return $item->id == $this->currency_id;
+            });
         });
     }
 
@@ -401,5 +401,85 @@ class Vendor extends BaseModel
     public function purchase_orders(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(PurchaseOrder::class)->withTrashed();
+    }
+
+    /**
+     * Returns a summary of expenses grouped by project for this vendor.
+     *
+     * @return array{total: float, total_paid: float, total_pending: float, by_project: array}
+     */
+    public function expenseSummaryByProject(): array
+    {
+        $expenses = $this->expenses()
+            ->whereNull('deleted_at')
+            ->select(
+                'id',
+                'project_id',
+                'amount',
+                'payment_date',
+                'date',
+                'tax_amount1',
+                'tax_amount2',
+                'tax_amount3',
+                'tax_rate1',
+                'tax_rate2',
+                'tax_rate3',
+                'uses_inclusive_taxes'
+            )
+            ->get();
+
+        $total = 0.0;
+        $totalPaid = 0.0;
+        $totalPending = 0.0;
+        $byProject = [];
+
+        foreach ($expenses as $expense) {
+            $amount = (float) $expense->amount;
+            $total += $amount;
+
+            $projectId = $expense->project_id ?? 0;
+            $isPaid = !empty($expense->payment_date);
+
+            if ($isPaid) {
+                $totalPaid += $amount;
+            } else {
+                $totalPending += $amount;
+            }
+
+            if (!isset($byProject[$projectId])) {
+                $project = $projectId ? Project::find($projectId) : null;
+                $byProject[$projectId] = [
+                    'project_id' => $projectId,
+                    'project_name' => $project ? $project->name : 'Sin Proyecto',
+                    'total' => 0.0,
+                    'paid' => 0.0,
+                    'pending' => 0.0,
+                    'count' => 0,
+                ];
+            }
+
+            $byProject[$projectId]['total'] += $amount;
+            $byProject[$projectId]['count']++;
+            if ($isPaid) {
+                $byProject[$projectId]['paid'] += $amount;
+            } else {
+                $byProject[$projectId]['pending'] += $amount;
+            }
+        }
+
+        // Round all values
+        foreach ($byProject as &$entry) {
+            $entry['total'] = round($entry['total'], 2);
+            $entry['paid'] = round($entry['paid'], 2);
+            $entry['pending'] = round($entry['pending'], 2);
+        }
+
+        return [
+            'total' => round($total, 2),
+            'total_paid' => round($totalPaid, 2),
+            'total_pending' => round($totalPending, 2),
+            'expense_count' => $expenses->count(),
+            'by_project' => array_values($byProject),
+        ];
     }
 }

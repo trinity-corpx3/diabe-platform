@@ -143,7 +143,7 @@ Route::group(['middleware' => ['throttle:login', 'api_secret_check', 'email_db']
     Route::post('api/v1/reset_password', [ForgotPasswordController::class, 'sendResetLinkEmail']);
 });
 
-Route::group(['middleware' => ['throttle:api', 'token_auth', 'valid_json','locale'], 'prefix' => 'api/v1', 'as' => 'api.'], function () {
+Route::group(['middleware' => ['throttle:api', 'token_auth', 'valid_json', 'locale'], 'prefix' => 'api/v1', 'as' => 'api.'], function () {
 
     Route::post('password_timeout', PasswordTimeoutController::class)->name('password_timeout');
     Route::put('accounts/{account}', [AccountController::class, 'update'])->name('account.update');
@@ -472,6 +472,17 @@ Route::group(['middleware' => ['throttle:api', 'token_auth', 'valid_json','local
     Route::post('yodlee/status/{account_number}', [YodleeController::class, 'accountStatus']); // @todo @turbo124 check route-path?!
 
     Route::get('nordigen/institutions', [NordigenController::class, 'institutions'])->name('nordigen.institutions');
+
+    // === Custom Routes: Cuentas por Pagar (Aging) ===
+    Route::get('cuentas-por-pagar', [\App\Http\Controllers\CuentasPorPagarController::class, 'index'])->name('cuentas_por_pagar.index');
+
+    // === Custom Routes: Nómina Operativa (Payroll) ===
+    Route::get('payroll/workers', [\App\Http\Controllers\PayrollController::class, 'workers'])->name('payroll.workers');
+    Route::post('payroll/bulk', [\App\Http\Controllers\PayrollController::class, 'bulkStore'])->name('payroll.bulk');
+    Route::get('payroll', [\App\Http\Controllers\PayrollController::class, 'index'])->name('payroll.index');
+    Route::post('payroll', [\App\Http\Controllers\PayrollController::class, 'store'])->name('payroll.store');
+    Route::put('payroll/{id}', [\App\Http\Controllers\PayrollController::class, 'update'])->name('payroll.update');
+    Route::delete('payroll/{id}', [\App\Http\Controllers\PayrollController::class, 'destroy'])->name('payroll.destroy');
 
 });
 
