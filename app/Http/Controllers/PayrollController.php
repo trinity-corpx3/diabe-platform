@@ -1,16 +1,15 @@
 <?php
 
 /**
- * Payroll Controller — Nómina Operativa.
+ * Payroll Controller — Nómina Operativa Semanal.
  *
- * Provides CRUD for daily payroll entries and weekly summaries
- * with worker identification and project assignment.
+ * Provides CRUD for weekly payroll entries grouped by project,
+ * with overtime support and estimated tax calculations.
  */
 
 namespace App\Http\Controllers;
 
 use App\Models\PayrollEntry;
-use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
@@ -20,13 +19,8 @@ class PayrollController extends BaseController
     /**
      * GET /api/v1/payroll
      *
-     * List payroll entries. Supports filtering by:
-     *  - week (ISO week number, e.g. ?week=9)
-     *  - year (e.g. ?year=2026)
-     *  - worker_name (e.g. ?worker_name=Juan)
-     *  - project_id (e.g. ?project_id=2)
-     *
-     * Returns entries grouped by week with weekly totals.
+     * Returns entries grouped by week → project → workers.
+     * Supports filtering by week, year, worker_name, project_id.
      */
     public function index(Request $request): JsonResponse
     {
@@ -58,7 +52,7 @@ class PayrollController extends BaseController
 
         $entries = $query->get();
 
-        // Group by week
+        // Group: week → project → workers
         $byWeek = [];
         foreach ($entries as $entry) {
             $date = Carbon::parse($entry->date);
@@ -73,59 +67,78 @@ class PayrollController extends BaseController
                     'year' => $date->isoWeekYear,
                     'start_date' => $startOfWeek->toDateString(),
                     'end_date' => $endOfWeek->toDateString(),
-                    'total_wages' => 0.0,
-                    'days_worked' => 0,
-                    'days_absent' => 0,
+                    'total_base' => 0.0,
+                    'total_overtime' => 0.0,
+                    'total_pay' => 0.0,
                     'worker_count' => 0,
+                    'projects' => [],
+                ];
+            }
+
+            $projectId = $entry->project_id ?? 0;
+            $projectName = $entry->project ? $entry->project->name : 'Sin Proyecto';
+
+            if (!isset($byWeek[$weekKey]['projects'][$projectId])) {
+                $byWeek[$weekKey]['projects'][$projectId] = [
+                    'project_id' => $entry->project_id,
+                    'project_name' => $projectName,
+                    'worker_count' => 0,
+                    'subtotal_base' => 0.0,
+                    'subtotal_overtime' => 0.0,
+                    'subtotal_total' => 0.0,
                     'workers' => [],
-                    'entries' => [],
                 ];
             }
 
-            $workerName = $entry->worker_name;
-            if (!isset($byWeek[$weekKey]['workers'][$workerName])) {
-                $byWeek[$weekKey]['workers'][$workerName] = [
-                    'worker_name' => $workerName,
-                    'total_wage' => 0.0,
-                    'days_worked' => 0,
-                    'days_absent' => 0,
-                    'daily' => [],
-                ];
-            }
+            $baseWage = (float) $entry->base_weekly_wage;
+            $overtimeHours = (float) $entry->overtime_hours;
+            $overtimeRate = (float) $entry->overtime_rate;
+            $overtimePay = round($overtimeHours * $overtimeRate, 2);
+            $totalPay = round($baseWage + $overtimePay, 2);
 
-            $dayData = [
+            $byWeek[$weekKey]['projects'][$projectId]['workers'][] = [
                 'id' => $entry->id,
-                'date' => $entry->date->toDateString(),
-                'day_name' => $this->spanishDayName($entry->date->dayOfWeek),
-                'daily_wage' => round((float) $entry->daily_wage, 2),
-                'attended' => (bool) $entry->attended,
-                'project_id' => $entry->project_id,
-                'project_name' => $entry->project ? $entry->project->name : 'Sin Proyecto',
+                'worker_name' => $entry->worker_name,
+                'base_weekly_wage' => $baseWage,
+                'overtime_hours' => $overtimeHours,
+                'overtime_rate' => $overtimeRate,
+                'overtime_pay' => $overtimePay,
+                'total_pay' => $totalPay,
+                'days_worked' => (int) ($entry->days_worked ?? 6),
                 'notes' => $entry->notes ?? '',
             ];
 
-            $byWeek[$weekKey]['workers'][$workerName]['daily'][] = $dayData;
+            $byWeek[$weekKey]['projects'][$projectId]['subtotal_base'] += $baseWage;
+            $byWeek[$weekKey]['projects'][$projectId]['subtotal_overtime'] += $overtimePay;
+            $byWeek[$weekKey]['projects'][$projectId]['subtotal_total'] += $totalPay;
+            $byWeek[$weekKey]['projects'][$projectId]['worker_count']++;
 
-            if ($entry->attended) {
-                $byWeek[$weekKey]['total_wages'] += (float) $entry->daily_wage;
-                $byWeek[$weekKey]['days_worked']++;
-                $byWeek[$weekKey]['workers'][$workerName]['total_wage'] += (float) $entry->daily_wage;
-                $byWeek[$weekKey]['workers'][$workerName]['days_worked']++;
-            } else {
-                $byWeek[$weekKey]['days_absent']++;
-                $byWeek[$weekKey]['workers'][$workerName]['days_absent']++;
-            }
+            $byWeek[$weekKey]['total_base'] += $baseWage;
+            $byWeek[$weekKey]['total_overtime'] += $overtimePay;
+            $byWeek[$weekKey]['total_pay'] += $totalPay;
         }
 
-        // Finalize: convert workers map to array and round totals
+        // Finalize: round totals, convert maps to arrays, count unique workers
         foreach ($byWeek as &$week) {
-            $week['worker_count'] = count($week['workers']);
-            $week['total_wages'] = round($week['total_wages'], 2);
-            foreach ($week['workers'] as &$worker) {
-                $worker['total_wage'] = round($worker['total_wage'], 2);
+            $week['total_base'] = round($week['total_base'], 2);
+            $week['total_overtime'] = round($week['total_overtime'], 2);
+            $week['total_pay'] = round($week['total_pay'], 2);
+
+            $uniqueWorkers = [];
+            foreach ($week['projects'] as &$project) {
+                $project['subtotal_base'] = round($project['subtotal_base'], 2);
+                $project['subtotal_overtime'] = round($project['subtotal_overtime'], 2);
+                $project['subtotal_total'] = round($project['subtotal_total'], 2);
+                foreach ($project['workers'] as $w) {
+                    $uniqueWorkers[$w['worker_name']] = true;
+                }
             }
-            $week['workers'] = array_values($week['workers']);
+            unset($project);
+
+            $week['worker_count'] = count($uniqueWorkers);
+            $week['projects'] = array_values($week['projects']);
         }
+        unset($week);
 
         return response()->json([
             'data' => array_values($byWeek),
@@ -135,16 +148,18 @@ class PayrollController extends BaseController
     /**
      * POST /api/v1/payroll
      *
-     * Create a new daily payroll entry for a worker.
+     * Create a weekly payroll entry for a worker on a project.
      */
     public function store(Request $request): JsonResponse
     {
         $request->validate([
             'worker_name' => 'required|string|max:255',
             'date' => 'required|date',
-            'daily_wage' => 'required|numeric|min:0',
+            'base_weekly_wage' => 'required|numeric|min:0',
+            'overtime_hours' => 'nullable|numeric|min:0',
+            'overtime_rate' => 'nullable|numeric|min:0',
+            'days_worked' => 'nullable|integer|min:0|max:7',
             'project_id' => 'nullable|integer',
-            'attended' => 'boolean',
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -157,12 +172,16 @@ class PayrollController extends BaseController
             'company_id' => $company->id,
             'user_id' => $user->id,
             'worker_name' => $request->input('worker_name'),
-            'date' => $date->toDateString(),
-            'daily_wage' => $request->input('daily_wage'),
+            'date' => $date->startOfWeek()->toDateString(),
+            'base_weekly_wage' => $request->input('base_weekly_wage'),
+            'overtime_hours' => $request->input('overtime_hours', 0),
+            'overtime_rate' => $request->input('overtime_rate', 0),
+            'days_worked' => $request->input('days_worked', 6),
             'project_id' => $request->input('project_id'),
-            'attended' => $request->input('attended', true),
             'notes' => $request->input('notes'),
             'week_number' => $date->isoWeek,
+            'daily_wage' => 0,
+            'attended' => true,
         ]);
 
         return response()->json([
@@ -173,8 +192,6 @@ class PayrollController extends BaseController
 
     /**
      * PUT /api/v1/payroll/{id}
-     *
-     * Update an existing payroll entry (e.g. change project, attendance, wage).
      */
     public function update(Request $request, int $id): JsonResponse
     {
@@ -182,30 +199,34 @@ class PayrollController extends BaseController
         $user = auth()->user();
         $company = $user->company();
 
-        $entry = PayrollEntry::where('company_id', $company->id)
-            ->findOrFail($id);
+        $entry = PayrollEntry::where('company_id', $company->id)->findOrFail($id);
 
         $request->validate([
             'worker_name' => 'sometimes|string|max:255',
             'date' => 'sometimes|date',
-            'daily_wage' => 'sometimes|numeric|min:0',
+            'base_weekly_wage' => 'sometimes|numeric|min:0',
+            'overtime_hours' => 'nullable|numeric|min:0',
+            'overtime_rate' => 'nullable|numeric|min:0',
+            'days_worked' => 'nullable|integer|min:0|max:7',
             'project_id' => 'nullable|integer',
-            'attended' => 'sometimes|boolean',
             'notes' => 'nullable|string|max:500',
         ]);
 
         $fillable = $request->only([
             'worker_name',
             'date',
-            'daily_wage',
+            'base_weekly_wage',
+            'overtime_hours',
+            'overtime_rate',
+            'days_worked',
             'project_id',
-            'attended',
             'notes',
         ]);
 
         if (isset($fillable['date'])) {
-            $fillable['date'] = Carbon::parse($fillable['date'])->toDateString();
-            $fillable['week_number'] = Carbon::parse($fillable['date'])->isoWeek;
+            $date = Carbon::parse($fillable['date']);
+            $fillable['date'] = $date->startOfWeek()->toDateString();
+            $fillable['week_number'] = $date->isoWeek;
         }
 
         $entry->update($fillable);
@@ -236,7 +257,7 @@ class PayrollController extends BaseController
     /**
      * POST /api/v1/payroll/bulk
      *
-     * Create multiple entries at once (e.g. fill an entire week for a worker).
+     * Create multiple weekly entries at once.
      */
     public function bulkStore(Request $request): JsonResponse
     {
@@ -244,9 +265,11 @@ class PayrollController extends BaseController
             'entries' => 'required|array|min:1',
             'entries.*.worker_name' => 'required|string|max:255',
             'entries.*.date' => 'required|date',
-            'entries.*.daily_wage' => 'required|numeric|min:0',
+            'entries.*.base_weekly_wage' => 'required|numeric|min:0',
+            'entries.*.overtime_hours' => 'nullable|numeric|min:0',
+            'entries.*.overtime_rate' => 'nullable|numeric|min:0',
+            'entries.*.days_worked' => 'nullable|integer|min:0|max:7',
             'entries.*.project_id' => 'nullable|integer',
-            'entries.*.attended' => 'boolean',
             'entries.*.notes' => 'nullable|string|max:500',
         ]);
 
@@ -261,12 +284,16 @@ class PayrollController extends BaseController
                 'company_id' => $company->id,
                 'user_id' => $user->id,
                 'worker_name' => $data['worker_name'],
-                'date' => $date->toDateString(),
-                'daily_wage' => $data['daily_wage'],
+                'date' => $date->startOfWeek()->toDateString(),
+                'base_weekly_wage' => $data['base_weekly_wage'],
+                'overtime_hours' => $data['overtime_hours'] ?? 0,
+                'overtime_rate' => $data['overtime_rate'] ?? 0,
+                'days_worked' => $data['days_worked'] ?? 6,
                 'project_id' => $data['project_id'] ?? null,
-                'attended' => $data['attended'] ?? true,
                 'notes' => $data['notes'] ?? null,
                 'week_number' => $date->isoWeek,
+                'daily_wage' => 0,
+                'attended' => true,
             ]);
         }
 
@@ -279,7 +306,7 @@ class PayrollController extends BaseController
     /**
      * GET /api/v1/payroll/workers
      *
-     * Returns a list of distinct worker names for autocomplete.
+     * Returns distinct worker names for autocomplete.
      */
     public function workers(Request $request): JsonResponse
     {
@@ -295,22 +322,5 @@ class PayrollController extends BaseController
             ->values();
 
         return response()->json(['data' => $workers]);
-    }
-
-    /**
-     * Helper: Translate day of week number to Spanish name.
-     */
-    private function spanishDayName(int $dayOfWeek): string
-    {
-        return match ($dayOfWeek) {
-            0 => 'Domingo',
-            1 => 'Lunes',
-            2 => 'Martes',
-            3 => 'Miércoles',
-            4 => 'Jueves',
-            5 => 'Viernes',
-            6 => 'Sábado',
-            default => '',
-        };
     }
 }
