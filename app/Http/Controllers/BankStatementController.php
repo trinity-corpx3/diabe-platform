@@ -44,7 +44,12 @@ class BankStatementController extends BaseController
             ->whereBetween('date', [$dateFrom, $dateTo]);
 
         if ($decodedProjectId) {
-            $paymentsQuery->where('project_id', $decodedProjectId);
+            $paymentsQuery->where(function ($query) use ($decodedProjectId) {
+                $query->where('project_id', $decodedProjectId)
+                    ->orWhereHas('invoices', function ($query) use ($decodedProjectId) {
+                        $query->where('project_id', $decodedProjectId);
+                    });
+            });
         }
 
         foreach ($paymentsQuery->with(['invoices', 'client', 'project'])->get() as $payment) {
@@ -133,6 +138,11 @@ class BankStatementController extends BaseController
                 'manual_entry_id' => (string) $this->encodePrimaryKey($entry->id),
             ]);
         }
+
+        // Ensure transactions are unique if a payment is linked both ways
+        $transactions = $transactions->unique(function ($t) {
+            return $t['source'] . '-' . $t['source_id'];
+        });
 
         // Sort by date, then deposits before withdrawals
         $transactions = $transactions->sortBy([
@@ -226,7 +236,12 @@ class BankStatementController extends BaseController
             ->whereIn('status_id', [Payment::STATUS_COMPLETED, Payment::STATUS_PARTIALLY_REFUNDED])
             ->where('date', '<', $dateFrom);
         if ($projectId) {
-            $pq->where('project_id', $projectId);
+            $pq->where(function ($query) use ($projectId) {
+                $query->where('project_id', $projectId)
+                    ->orWhereHas('invoices', function ($query) use ($projectId) {
+                        $query->where('project_id', $projectId);
+                    });
+            });
         }
         $balance += (float) $pq->sum('amount');
 
@@ -324,8 +339,13 @@ class BankStatementController extends BaseController
         ]);
 
         $entry->fill($request->only([
-            'date', 'type', 'amount', 'iva_amount',
-            'description', 'category', 'reference',
+            'date',
+            'type',
+            'amount',
+            'iva_amount',
+            'description',
+            'category',
+            'reference',
         ]));
 
         if ($request->has('project_id')) {

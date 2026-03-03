@@ -346,17 +346,44 @@ class Project extends BaseModel
      */
     public function calcIvaCobrado(): float
     {
-        $payments = $this->payments()
+        // Get payments directly linked to project
+        $directPayments = $this->payments()
             ->whereNull('deleted_at')
             ->where('is_deleted', 0)
             ->whereIn('status_id', [Payment::STATUS_COMPLETED, Payment::STATUS_PARTIALLY_REFUNDED])
             ->with('invoices')
             ->get();
 
+        // Get payments linked via invoices belonging to this project
+        $indirectPayments = Payment::whereHas('invoices', function ($query) {
+            $query->where('project_id', $this->id)
+                ->whereNull('invoices.deleted_at')
+                ->where('invoices.is_deleted', 0);
+        })
+            ->whereNull('deleted_at')
+            ->where('is_deleted', 0)
+            ->whereIn('status_id', [Payment::STATUS_COMPLETED, Payment::STATUS_PARTIALLY_REFUNDED])
+            ->where(function ($query) {
+                $query->whereNull('project_id')
+                    ->orWhere('project_id', '!=', $this->id);
+            })
+            ->with([
+                'invoices' => function ($query) {
+                    $query->where('project_id', $this->id);
+                }
+            ])
+            ->get();
+
+        $allPayments = $directPayments->concat($indirectPayments);
         $total = 0.0;
 
-        foreach ($payments as $payment) {
+        foreach ($allPayments as $payment) {
             foreach ($payment->invoices as $invoice) {
+                // If we are looking at indirect payments, only count the invoice belonging to this project
+                if ($invoice->project_id != $this->id) {
+                    continue;
+                }
+
                 if ($invoice->pivot->deleted_at) {
                     continue;
                 }
