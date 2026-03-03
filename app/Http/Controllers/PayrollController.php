@@ -12,10 +12,13 @@ namespace App\Http\Controllers;
 use App\Models\PayrollEntry;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use App\Utils\Traits\MakesHash;
 use Carbon\Carbon;
 
 class PayrollController extends BaseController
 {
+    use MakesHash;
+
     /**
      * GET /api/v1/payroll
      *
@@ -46,8 +49,8 @@ class PayrollController extends BaseController
             $query->where('worker_name', 'like', '%' . $request->input('worker_name') . '%');
         }
 
-        if ($request->has('project_id')) {
-            $query->where('project_id', $request->input('project_id'));
+        if ($request->has('project_id') && $request->input('project_id')) {
+            $query->where('project_id', $this->decodePrimaryKey($request->input('project_id')));
         }
 
         $entries = $query->get();
@@ -99,6 +102,7 @@ class PayrollController extends BaseController
             $byWeek[$weekKey]['projects'][$projectId]['workers'][] = [
                 'id' => $entry->id,
                 'worker_name' => $entry->worker_name,
+                'daily_wage' => (float) ($entry->daily_wage ?? 0),
                 'base_weekly_wage' => $baseWage,
                 'overtime_hours' => $overtimeHours,
                 'overtime_rate' => $overtimeRate,
@@ -155,11 +159,12 @@ class PayrollController extends BaseController
         $request->validate([
             'worker_name' => 'required|string|max:255',
             'date' => 'required|date',
-            'base_weekly_wage' => 'required|numeric|min:0',
+            'base_weekly_wage' => 'required_without:daily_wage|numeric|min:0',
+            'daily_wage' => 'required_without:base_weekly_wage|numeric|min:0',
             'overtime_hours' => 'nullable|numeric|min:0',
             'overtime_rate' => 'nullable|numeric|min:0',
             'days_worked' => 'nullable|integer|min:0|max:7',
-            'project_id' => 'nullable|integer',
+            'project_id' => 'nullable|string',
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -168,19 +173,24 @@ class PayrollController extends BaseController
         $company = $user->company();
         $date = Carbon::parse($request->input('date'));
 
+        $project_id = $request->input('project_id') ? $this->decodePrimaryKey($request->input('project_id')) : null;
+        $daily_wage = (float) $request->input('daily_wage', 0);
+        $days_worked = (int) $request->input('days_worked', 6);
+        $base_weekly_wage = $request->has('daily_wage') ? round($daily_wage * $days_worked, 2) : (float) $request->input('base_weekly_wage');
+
         $entry = PayrollEntry::create([
             'company_id' => $company->id,
             'user_id' => $user->id,
             'worker_name' => $request->input('worker_name'),
             'date' => $date->startOfWeek()->toDateString(),
-            'base_weekly_wage' => $request->input('base_weekly_wage'),
+            'daily_wage' => $daily_wage,
+            'base_weekly_wage' => $base_weekly_wage,
             'overtime_hours' => $request->input('overtime_hours', 0),
             'overtime_rate' => $request->input('overtime_rate', 0),
-            'days_worked' => $request->input('days_worked', 6),
-            'project_id' => $request->input('project_id'),
+            'days_worked' => $days_worked,
+            'project_id' => $project_id,
             'notes' => $request->input('notes'),
             'week_number' => $date->isoWeek,
-            'daily_wage' => 0,
             'attended' => true,
         ]);
 
@@ -205,16 +215,18 @@ class PayrollController extends BaseController
             'worker_name' => 'sometimes|string|max:255',
             'date' => 'sometimes|date',
             'base_weekly_wage' => 'sometimes|numeric|min:0',
+            'daily_wage' => 'sometimes|numeric|min:0',
             'overtime_hours' => 'nullable|numeric|min:0',
             'overtime_rate' => 'nullable|numeric|min:0',
             'days_worked' => 'nullable|integer|min:0|max:7',
-            'project_id' => 'nullable|integer',
+            'project_id' => 'nullable|string',
             'notes' => 'nullable|string|max:500',
         ]);
 
         $fillable = $request->only([
             'worker_name',
             'date',
+            'daily_wage',
             'base_weekly_wage',
             'overtime_hours',
             'overtime_rate',
@@ -222,6 +234,17 @@ class PayrollController extends BaseController
             'project_id',
             'notes',
         ]);
+
+        if (isset($fillable['project_id']) && $fillable['project_id']) {
+            $fillable['project_id'] = $this->decodePrimaryKey($fillable['project_id']);
+        }
+
+        // Recalculate base if daily_wage or days_worked changes
+        if (isset($fillable['daily_wage']) || isset($fillable['days_worked'])) {
+            $daily = (float) ($fillable['daily_wage'] ?? $entry->daily_wage);
+            $days = (int) ($fillable['days_worked'] ?? $entry->days_worked);
+            $fillable['base_weekly_wage'] = round($daily * $days, 2);
+        }
 
         if (isset($fillable['date'])) {
             $date = Carbon::parse($fillable['date']);
@@ -265,11 +288,12 @@ class PayrollController extends BaseController
             'entries' => 'required|array|min:1',
             'entries.*.worker_name' => 'required|string|max:255',
             'entries.*.date' => 'required|date',
-            'entries.*.base_weekly_wage' => 'required|numeric|min:0',
+            'entries.*.base_weekly_wage' => 'required_without:entries.*.daily_wage|numeric|min:0',
+            'entries.*.daily_wage' => 'required_without:entries.*.base_weekly_wage|numeric|min:0',
             'entries.*.overtime_hours' => 'nullable|numeric|min:0',
             'entries.*.overtime_rate' => 'nullable|numeric|min:0',
             'entries.*.days_worked' => 'nullable|integer|min:0|max:7',
-            'entries.*.project_id' => 'nullable|integer',
+            'entries.*.project_id' => 'nullable|string',
             'entries.*.notes' => 'nullable|string|max:500',
         ]);
 
@@ -280,19 +304,24 @@ class PayrollController extends BaseController
         $created = [];
         foreach ($request->input('entries') as $data) {
             $date = Carbon::parse($data['date']);
+            $project_id = isset($data['project_id']) && $data['project_id'] ? $this->decodePrimaryKey($data['project_id']) : null;
+            $daily_wage = (float) ($data['daily_wage'] ?? 0);
+            $days_worked = (int) ($data['days_worked'] ?? 6);
+            $base_weekly_wage = isset($data['daily_wage']) ? round($daily_wage * $days_worked, 2) : (float) ($data['base_weekly_wage'] ?? 0);
+
             $created[] = PayrollEntry::create([
                 'company_id' => $company->id,
                 'user_id' => $user->id,
                 'worker_name' => $data['worker_name'],
                 'date' => $date->startOfWeek()->toDateString(),
-                'base_weekly_wage' => $data['base_weekly_wage'],
+                'daily_wage' => $daily_wage,
+                'base_weekly_wage' => $base_weekly_wage,
                 'overtime_hours' => $data['overtime_hours'] ?? 0,
                 'overtime_rate' => $data['overtime_rate'] ?? 0,
-                'days_worked' => $data['days_worked'] ?? 6,
-                'project_id' => $data['project_id'] ?? null,
+                'days_worked' => $days_worked,
+                'project_id' => $project_id,
                 'notes' => $data['notes'] ?? null,
                 'week_number' => $date->isoWeek,
-                'daily_wage' => 0,
                 'attended' => true,
             ]);
         }
