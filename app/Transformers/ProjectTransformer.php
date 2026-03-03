@@ -135,6 +135,8 @@ class ProjectTransformer extends EntityTransformer
             'pending_collection' => (float) $summary['pending_collection'],
             'total_expenses' => (float) $summary['total_expenses'],
             'total_expenses_pending' => (float) $summary['total_expenses_pending'],
+            'total_payroll' => (float) $summary['total_payroll'],
+            'payroll_workers' => (int) $summary['payroll_workers'],
             'profit' => (float) $summary['profit'],
             'profitability' => (float) $summary['profitability'],
             'iva_cobrado' => (float) $summary['iva_cobrado'],

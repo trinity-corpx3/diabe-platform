@@ -11,6 +11,8 @@
 
 namespace App\Models;
 
+use App\Models\PayrollEntry;
+
 use App\Utils\Number;
 use Illuminate\Support\Facades\App;
 use Elastic\ScoutDriverPlus\Searchable;
@@ -206,6 +208,11 @@ class Project extends BaseModel
         return $this->hasMany(Payment::class);
     }
 
+    public function payrollEntries(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PayrollEntry::class);
+    }
+
     /**
      * Total invoiced from valid (Sent/Partial/Paid, not deleted) invoices.
      */
@@ -267,6 +274,35 @@ class Project extends BaseModel
     }
 
     /**
+     * Total payroll cost (base wages + overtime) for this project.
+     */
+    public function calcTotalPayroll(): float
+    {
+        $entries = $this->payrollEntries()
+            ->whereNull('deleted_at')
+            ->get();
+
+        $total = 0.0;
+        foreach ($entries as $entry) {
+            $total += (float) $entry->base_weekly_wage
+                + ((float) $entry->overtime_hours * (float) $entry->overtime_rate);
+        }
+
+        return $total;
+    }
+
+    /**
+     * Count of unique workers assigned to this project's payroll.
+     */
+    public function calcPayrollWorkerCount(): int
+    {
+        return (int) $this->payrollEntries()
+            ->whereNull('deleted_at')
+            ->distinct('worker_name')
+            ->count('worker_name');
+    }
+
+    /**
      * Full financial summary for this project.
      */
     public function financialSummary(): array
@@ -275,8 +311,11 @@ class Project extends BaseModel
         $total_paid = $this->calcTotalPaid();
         $total_expenses = $this->calcTotalExpenses();
         $total_expenses_pending = $this->calcTotalExpensesPending();
+        $total_payroll = $this->calcTotalPayroll();
+        $payroll_workers = $this->calcPayrollWorkerCount();
 
-        $profit = round($total_paid - $total_expenses, 2);
+        // Profit = paid by client - expenses - payroll
+        $profit = round($total_paid - $total_expenses - $total_payroll, 2);
         $profitability = $total_paid > 0
             ? round(($profit / $total_paid) * 100, 1)
             : 0.0;
@@ -292,6 +331,8 @@ class Project extends BaseModel
             'pending_collection' => round($total_invoiced - $total_paid, 2),
             'total_expenses' => round($total_expenses, 2),
             'total_expenses_pending' => round($total_expenses_pending, 2),
+            'total_payroll' => round($total_payroll, 2),
+            'payroll_workers' => $payroll_workers,
             'profit' => $profit,
             'profitability' => $profitability,
             'iva_cobrado' => round($iva_cobrado, 2),
