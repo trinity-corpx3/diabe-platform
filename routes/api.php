@@ -475,6 +475,7 @@ Route::group(['middleware' => ['throttle:api', 'token_auth', 'valid_json', 'loca
 
     // === Custom Routes: Cuentas por Pagar (Aging) ===
     Route::get('cuentas-por-pagar', [\App\Http\Controllers\CuentasPorPagarController::class, 'index'])->name('cuentas_por_pagar.index');
+    Route::get('cuentas-por-cobrar', [\App\Http\Controllers\CuentasPorCobrarController::class, 'index'])->name('cuentas_por_cobrar.index');
 
     // === Custom Routes: Nómina Operativa (Payroll) ===
     Route::get('payroll/workers', [\App\Http\Controllers\PayrollController::class, 'workers'])->name('payroll.workers');
