@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="/react/index-DqzpGGMH.css">
-<script type="module" crossorigin src="/react/index-Dzwf7oW0.js"></script>
+<script type="module" crossorigin src="/react/index-DEC-S3LU.js"></script>
 
 </style>
 
