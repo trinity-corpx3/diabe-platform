@@ -260,6 +260,7 @@ Route::group(['middleware' => ['throttle:api', 'token_auth', 'valid_json', 'loca
     Route::post('emails/entityHistory', [EmailHistoryController::class, 'entityHistory'])->name('email.entityHistory');
 
     Route::resource('expenses', ExpenseController::class); // name = (expenses. index / create / show / update / destroy / edit
+    Route::resource('office_expenses', OfficeExpenseController::class);
     Route::put('expenses/{expense}/upload', [ExpenseController::class, 'upload']);
     Route::post('expenses/bulk', [ExpenseController::class, 'bulk'])->name('expenses.bulk');
     Route::post('export', [ExportController::class, 'index'])->name('export.index');

@@ -33,6 +33,7 @@ use App\Models\ClientContact;
 use App\Models\PurchaseOrder;
 use App\Models\VendorContact;
 use App\Models\CompanyGateway;
+use App\Models\OfficeExpense;
 use App\Observers\TaskObserver;
 use App\Observers\UserObserver;
 use App\Observers\QuoteObserver;
@@ -47,6 +48,7 @@ use App\Observers\InvoiceObserver;
 use App\Observers\PaymentObserver;
 use App\Observers\ProductObserver;
 use App\Observers\ProjectObserver;
+use App\Observers\OfficeExpenseObserver;
 use App\Events\Task\TaskWasCreated;
 use App\Events\Task\TaskWasDeleted;
 use App\Events\Task\TaskWasUpdated;
@@ -317,12 +319,12 @@ class EventServiceProvider extends ServiceProvider
      */
     protected $listen = [
 
-        // RequestSending::class => [
-        //     LogRequestSending::class,
-        // ],
-        // ResponseReceived::class => [
-        //     LogResponseReceived::class,
-        // ],
+            // RequestSending::class => [
+            //     LogRequestSending::class,
+            // ],
+            // ResponseReceived::class => [
+            //     LogResponseReceived::class,
+            // ],
         AccountDeleted::class => [
             AccountDeletedListener::class,
         ],
@@ -386,7 +388,7 @@ class EventServiceProvider extends ServiceProvider
             PaymentRestoredActivity::class,
             PaymentBalanceActivity::class,
         ],
-        // Clients
+            // Clients
         ClientWasCreated::class => [
             CreatedClientActivity::class,
         ],
@@ -408,7 +410,7 @@ class EventServiceProvider extends ServiceProvider
         ClientWasPurged::class => [
             ClientPurgedActivity::class,
         ],
-        // Documents
+            // Documents
         DocumentWasCreated::class => [
         ],
         DocumentWasArchived::class => [
@@ -446,7 +448,7 @@ class EventServiceProvider extends ServiceProvider
         CreditWasViewed::class => [
             CreditViewedActivity::class,
         ],
-        //Designs
+            //Designs
         DesignWasUpdated::class => [
         ],
         DesignWasArchived::class => [
@@ -473,7 +475,7 @@ class EventServiceProvider extends ServiceProvider
         ExpenseWasRestored::class => [
             ExpenseRestoredActivity::class,
         ],
-        //Invoices
+            //Invoices
         InvoiceAutoBillSuccess::class => [
             InvoiceAutoBillSuccessActivity::class,
         ],
@@ -703,8 +705,8 @@ class EventServiceProvider extends ServiceProvider
         ],
         \SocialiteProviders\Manager\SocialiteWasCalled::class => [
             // ... Manager won't register drivers that are not added to this listener.
-            \SocialiteProviders\Apple\AppleExtendSocialite::class.'@handle',
-            \SocialiteProviders\Microsoft\MicrosoftExtendSocialite::class.'@handle',
+            \SocialiteProviders\Apple\AppleExtendSocialite::class . '@handle',
+            \SocialiteProviders\Microsoft\MicrosoftExtendSocialite::class . '@handle',
         ],
 
     ];
@@ -748,6 +750,7 @@ class EventServiceProvider extends ServiceProvider
         Vendor::observe(VendorObserver::class);
         VendorContact::observe(VendorContactObserver::class);
         PurchaseOrder::observe(PurchaseOrderObserver::class);
+        OfficeExpense::observe(OfficeExpenseObserver::class);
     }
 
     /**
