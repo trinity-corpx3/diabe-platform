@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\OfficeExpense;
 use App\Transformers\OfficeExpenseTransformer;
-use App\Http\Requests\Expense\StoreExpenseRequest; // We can reuse or create a custom one
-use App\Http\Requests\Expense\UpdateExpenseRequest;
+use App\Http\Requests\OfficeExpense\StoreOfficeExpenseRequest;
+use App\Http\Requests\OfficeExpense\UpdateOfficeExpenseRequest;
 use Illuminate\Http\Response;
 
 class OfficeExpenseController extends BaseController
@@ -23,7 +23,7 @@ class OfficeExpenseController extends BaseController
         return $this->itemResponse($officeExpenses);
     }
 
-    public function store(StoreExpenseRequest $request)
+    public function store(StoreOfficeExpenseRequest $request)
     {
         $officeExpense = new OfficeExpense();
         $officeExpense->fill($request->all());
@@ -39,7 +39,7 @@ class OfficeExpenseController extends BaseController
         return $this->itemResponse($officeExpense);
     }
 
-    public function update(UpdateExpenseRequest $request, OfficeExpense $officeExpense)
+    public function update(UpdateOfficeExpenseRequest $request, OfficeExpense $officeExpense)
     {
         $officeExpense->fill($request->all());
         $officeExpense->save();
