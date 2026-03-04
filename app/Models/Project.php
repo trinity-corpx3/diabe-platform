@@ -388,9 +388,13 @@ class Project extends BaseModel
                     continue;
                 }
                 $applied = (float) $invoice->pivot->amount;
-                $rate = (float) ($invoice->tax_rate1 ?? 0);
-                if ($rate > 0 && $applied > 0) {
-                    $total += $applied * $rate / (100 + $rate);
+                $invoiceAmount = (float) $invoice->amount;
+                $invoiceTaxes = (float) $invoice->total_taxes;
+
+                if ($invoiceAmount > 0 && $invoiceTaxes > 0 && $applied > 0) {
+                    // Tax proportion: total_taxes covers all tax sources (invoice-level, line-item, multi-rate)
+                    $taxProportion = $invoiceTaxes / $invoiceAmount;
+                    $total += $applied * $taxProportion;
                 }
             }
         }
