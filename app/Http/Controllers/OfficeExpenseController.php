@@ -15,12 +15,11 @@ class OfficeExpenseController extends BaseController
 
     public function index()
     {
-        $officeExpenses = OfficeExpense::where('company_id', request()->user()->company()->id)
+        $query = OfficeExpense::where('company_id', request()->user()->company()->id)
             ->where('is_deleted', false)
-            ->orderBy('date', 'desc')
-            ->get();
+            ->orderBy('date', 'desc');
 
-        return $this->itemResponse($officeExpenses);
+        return $this->listResponse($query);
     }
 
     public function store(StoreOfficeExpenseRequest $request)
