@@ -90,6 +90,12 @@ foreach ($files as $file) {
         $json['day'] = 'Día';
         $json['nomina_empty_hint'] = 'Haz clic en "Nuevo Registro" para capturar la primera entrada de nómina.';
 
+        // Office Expenses (Gastos Oficina)
+        $json['office_expenses'] = 'Gastos Oficina';
+        $json['office_expense'] = 'Gasto Oficina';
+        $json['new_office_expense'] = 'Nuevo Gasto Oficina';
+        $json['category'] = 'Categoría';
+
         $new_content = json_encode($json, JSON_UNESCAPED_UNICODE);
     }
 
