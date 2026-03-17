@@ -5,6 +5,7 @@ namespace App\Http\Requests\OfficeExpense;
 use App\Http\Requests\Request;
 use App\Models\OfficeExpense;
 use App\Utils\Traits\MakesHash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class UpdateOfficeExpenseRequest extends Request
@@ -34,7 +35,9 @@ class UpdateOfficeExpenseRequest extends Request
     public function prepareForValidation()
     {
         $input = $this->all();
+        Log::info('OfficeExpense Update Request Input before decoding:', $input);
         $input = $this->decodePrimaryKeys($input);
+        Log::info('OfficeExpense Update Request Input after decoding:', $input);
         $this->replace($input);
     }
 }
