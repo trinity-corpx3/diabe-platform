@@ -6,6 +6,7 @@ use App\Models\OfficeExpense;
 use App\Transformers\OfficeExpenseTransformer;
 use App\Http\Requests\OfficeExpense\StoreOfficeExpenseRequest;
 use App\Http\Requests\OfficeExpense\UpdateOfficeExpenseRequest;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class OfficeExpenseController extends BaseController
@@ -50,5 +51,47 @@ class OfficeExpenseController extends BaseController
     {
         $officeExpense->delete();
         return $this->itemResponse($officeExpense);
+    }
+
+    public function bulk(Request $request)
+    {
+        $ids = (array) $request->input('ids', []);
+        $action = (string) $request->input('action', '');
+
+        if (empty($ids) || $action === '') {
+            return response()->json(['message' => 'Invalid bulk request'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $companyId = $request->user()->company()->id;
+
+        $query = OfficeExpense::withTrashed()
+            ->where('company_id', $companyId)
+            ->whereIn('id', $ids);
+
+        $officeExpenses = $query->get();
+
+        foreach ($officeExpenses as $officeExpense) {
+            switch ($action) {
+                case 'archive':
+                    $officeExpense->is_deleted = true;
+                    $officeExpense->save();
+                    $officeExpense->delete();
+                    break;
+                case 'restore':
+                    $officeExpense->restore();
+                    $officeExpense->is_deleted = false;
+                    $officeExpense->save();
+                    break;
+                case 'delete':
+                    $officeExpense->forceDelete();
+                    break;
+            }
+        }
+
+        $refreshed = OfficeExpense::withTrashed()
+            ->where('company_id', $companyId)
+            ->whereIn('id', $ids);
+
+        return $this->listResponse($refreshed);
     }
 }
