@@ -4,10 +4,12 @@ namespace App\Http\Requests\OfficeExpense;
 
 use App\Http\Requests\Request;
 use App\Models\OfficeExpense;
+use App\Utils\Traits\MakesHash;
 use Illuminate\Validation\Rule;
 
 class StoreOfficeExpenseRequest extends Request
 {
+    use MakesHash;
     public function authorize(): bool
     {
         return true; // For now, we can refine this later if needed
@@ -27,5 +29,12 @@ class StoreOfficeExpenseRequest extends Request
         ];
 
         return $this->globalRules($rules);
+    }
+
+    public function prepareForValidation()
+    {
+        $input = $this->all();
+        $input = $this->decodePrimaryKeys($input);
+        $this->replace($input);
     }
 }
