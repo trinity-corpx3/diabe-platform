@@ -257,22 +257,22 @@ class RoEInvoice extends AbstractService
 
         $invoicing_data = $this->invoice->calc();
         $taxtotal = new TaxTotal();
-        $taxtotal->setTaxAmount($invoicing_data->getItemTotalTaxes());
+        $taxtotal->setTaxAmount((string)$invoicing_data->getItemTotalTaxes());
         $taxtotal->addTaxSubTotal((new TaxSubTotal())
-            ->setTaxAmount($invoicing_data->getItemTotalTaxes())
-            ->setTaxableAmount($taxable)
+            ->setTaxAmount((string)$invoicing_data->getItemTotalTaxes())
+            ->setTaxableAmount((string)$taxable)
             ->setTaxCategory((new TaxCategory())
                 ->setId("S")
-                ->setPercent($taxRatePercent)
+                ->setPercent((string)$taxRatePercent)
                 ->setTaxScheme(((new TaxScheme())->setId(($taxNameScheme === 'TVA') ? 'VAT' : $taxNameScheme)))));
 
         $ubl_invoice->setTaxTotal($taxtotal);
 
         $ubl_invoice->setLegalMonetaryTotal((new LegalMonetaryTotal())
-            ->setLineExtensionAmount($taxable)
-            ->setTaxExclusiveAmount($taxable)
-            ->setTaxInclusiveAmount($invoice->amount)
-            ->setPayableAmount($invoice->amount));
+            ->setLineExtensionAmount((string)$taxable)
+            ->setTaxExclusiveAmount((string)$taxable)
+            ->setTaxInclusiveAmount((string)$invoice->amount)
+            ->setPayableAmount((string)$invoice->amount));
 
         return $ubl_invoice;
     }
@@ -347,38 +347,38 @@ class RoEInvoice extends AbstractService
         if (strlen($item->tax_name1) > 1) {
             $classifiedTaxCategory = (new ClassifiedTaxCategory())
             ->setId($this->resolveTaxCode($item->tax_id ?? 1))
-            ->setPercent($item->tax_rate1)
+            ->setPercent((string)$item->tax_rate1)
             ->setTaxScheme(((new TaxScheme())->setId(($item->tax_name1 === 'TVA') ? 'VAT' : $item->tax_name1)));
         } elseif (strlen($item->tax_name2) > 1) {
             $classifiedTaxCategory = (new ClassifiedTaxCategory())
             ->setId($this->resolveTaxCode($item->tax_id ?? 1))
-            ->setPercent($item->tax_rate2)
+            ->setPercent((string)$item->tax_rate2)
             ->setTaxScheme(((new TaxScheme())->setId(($item->tax_name2 === 'TVA') ? 'VAT' : $item->tax_name2)));
         } elseif (strlen($item->tax_name3) > 1) {
             $classifiedTaxCategory = (new ClassifiedTaxCategory())
             ->setId($this->resolveTaxCode($item->tax_id ?? 1))
-            ->setPercent($item->tax_rate3)
+            ->setPercent((string)$item->tax_rate3)
             ->setTaxScheme(((new TaxScheme())->setId(($item->tax_name3 === 'TVA') ? 'VAT' : $item->tax_name3)));
         } else {
 
             $classifiedTaxCategory = (new ClassifiedTaxCategory())
             ->setId($this->resolveTaxCode($item->tax_id ?? 8))
-            ->setPercent(0)
+            ->setPercent((string)0)
             ->setTaxScheme(((new TaxScheme())->setId(($item->tax_name3 === 'TVA') ? 'VAT' : $item->tax_name3)));
 
         }
 
         $invoiceLine = (new InvoiceLine())
             ->setId($index + 1)
-            ->setInvoicedQuantity($item->quantity)
+            ->setInvoicedQuantity((string)$item->quantity)
             ->setUnitCode($item->unit_code ?? 'C62')
-            ->setLineExtensionAmount($item->line_total)
+            ->setLineExtensionAmount((string)$item->line_total)
             ->setItem((new Item())
                 ->setName($item->product_key)
                 ->setDescription($item->notes)
                 ->setClassifiedTaxCategory([$classifiedTaxCategory]))
             ->setPrice((new Price())
-                ->setPriceAmount($this->costWithDiscount($item)));
+                ->setPriceAmount((string)$this->costWithDiscount($item)));
 
         //->setSellersItemIdentification("1ABCD"));
 
@@ -392,13 +392,13 @@ class RoEInvoice extends AbstractService
         $taxScheme = ((new TaxScheme()))->setId($taxName);
 
         $taxtotal->addTaxSubTotal((new TaxSubTotal())
-                ->setTaxAmount($taxAmount)
-                ->setTaxableAmount($taxable)
+                ->setTaxAmount((string)$taxAmount)
+                ->setTaxableAmount((string)$taxable)
                 ->setTaxCategory((new TaxCategory())
                     ->setId($taxName)
                     ->setName($taxName)
                     ->setTaxScheme($taxScheme)
-                    ->setPercent($taxRate)));
+                    ->setPercent((string)$taxRate)));
 
         return $taxAmount;
     }

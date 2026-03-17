@@ -218,7 +218,7 @@ class FacturaEInvoice extends AbstractService
     private function setDiscount(): self
     {
         if ($this->invoice->discount > 0) {
-            $this->fac->addDiscount(ctrans('texts.discount'), $this->calc->getTotalDiscount());
+            $this->fac->addDiscount(ctrans('texts.discount'), (string)$this->calc->getTotalDiscount());
         }
 
         return $this;
@@ -386,9 +386,9 @@ class FacturaEInvoice extends AbstractService
             $this->fac->addItem(new FacturaeItem([
                 'name' => $item->product_key,
                 'description' => $item->notes,
-                'quantity' => $item->quantity,
-                'unitPriceWithoutTax' => $item->cost,
-                'discountsAndRebates' => $item->discount,
+                'quantity' => (string)$item->quantity,
+                'unitPriceWithoutTax' => (string)$item->cost,
+                'discountsAndRebates' => (string)$item->discount,
                 'charges' => [],
                 'discounts' => [],
                 'taxes' => $this->buildRatesForItem($item),
@@ -409,21 +409,21 @@ class FacturaEInvoice extends AbstractService
 
         if (strlen($item->tax_name1) > 1) {
 
-            $data[$this->resolveTaxCode($item->tax_name1)] = abs($item->tax_rate1);
+            $data[$this->resolveTaxCode($item->tax_name1)] = (string)abs($item->tax_rate1);
 
         }
 
         if (strlen($item->tax_name2) > 1) {
 
 
-            $data[$this->resolveTaxCode($item->tax_name2)] = abs($item->tax_rate2);
+            $data[$this->resolveTaxCode($item->tax_name2)] = (string)abs($item->tax_rate2);
 
         }
 
         if (strlen($item->tax_name3) > 1) {
 
 
-            $data[$this->resolveTaxCode($item->tax_name3)] = abs($item->tax_rate3);
+            $data[$this->resolveTaxCode($item->tax_name3)] = (string)abs($item->tax_rate3);
 
         }
 

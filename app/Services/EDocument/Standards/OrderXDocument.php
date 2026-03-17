@@ -62,7 +62,7 @@ class OrderXDocument extends AbstractService
             ->setDocumentBuyer($settings_entity->present()->name(), $settings_entity->number)
             ->setDocumentBuyerAddress($settings_entity->address1, "", "", $settings_entity->postal_code, $settings_entity->city, $settings_entity->country->iso_3166_2 ?? $company->country()->iso_3166_2, $settings_entity->state)
             ->setDocumentBuyerContact($settings_entity->present()->primary_contact_name(), "", $settings_entity->present()->phone(), "", $settings_entity->present()->email())
-            ->addDocumentPaymentTerm(ctrans("texts.xinvoice_payable", ['payeddue' => date_create($this->document->date ?? now()->format('Y-m-d'))->diff(date_create($this->document->due_date ?? now()->format('Y-m-d')))->format("%d"), 'paydate' => $this->document->due_date]));
+            ->addDocumentPaymentTerm(ctrans("texts.xinvoice_payable", ['payeddue' => (string)date_create($this->document->date ?? now()->format('Y-m-d'))->diff(date_create($this->document->due_date ?? now()->format('Y-m-d')))->format("%d"), 'paydate' => $this->document->due_date]));
 
         if (!empty($this->document->public_notes)) {
             $this->orderxdocument->addDocumentNote($this->document->public_notes ?? '');
@@ -73,7 +73,7 @@ class OrderXDocument extends AbstractService
             case Quote::class:
                 // Probably wrong file code https://github.com/horstoeko/zugferd/blob/master/src/codelists/ZugferdInvoiceType.php
                 if (empty($this->document->number)) {
-                    $this->orderxdocument->setDocumentInformation("DRAFT", OrderDocumentTypes::ORDER, date_create($this->document->date ?? now()->format('Y-m-d')), $settings_entity->getCurrencyCode());
+                    $this->orderxdocument->setDocumentInformation("DRAFT", OrderDocumentTypes::ORDER, date_create($this->document->date ?? now()->format('Y-m-d')), (string)$settings_entity->getCurrencyCode());
                     $this->orderxdocument->setIsTestDocument(true);
                 } else {
                     $this->orderxdocument->setDocumentInformation($this->document->number, OrderDocumentTypes::ORDER, date_create($this->document->date ?? now()->format('Y-m-d')), $settings_entity->getCurrencyCode());
@@ -114,9 +114,9 @@ class OrderXDocument extends AbstractService
         //Create line items and calculate taxes
         foreach ($this->document->line_items as $index => $item) {
             /** @var \App\DataMapper\InvoiceItem $item **/
-            $this->orderxdocument->addNewPosition($index)
-                ->setDocumentPositionGrossPrice($item->gross_line_total)
-                ->setDocumentPositionNetPrice($item->cost);
+            $this->orderxdocument->addNewPosition((string)$index)
+                ->setDocumentPositionGrossPrice((string)$item->gross_line_total)
+                ->setDocumentPositionNetPrice((string)$item->cost);
             if (!empty($item->product_key)) {
                 if (!empty($item->notes)) {
                     $this->orderxdocument->setDocumentPositionProductDetails($item->product_key, $item->notes);
@@ -144,12 +144,12 @@ class OrderXDocument extends AbstractService
                     $linenetamount -= $linenetamount * ($item->discount / 100);
                 }
             }
-            $this->orderxdocument->setDocumentPositionLineSummation($linenetamount);
+            $this->orderxdocument->setDocumentPositionLineSummation((string)$linenetamount);
             // According to european law, each line item can only have one tax rate
             if (!(empty($item->tax_name1) && empty($item->tax_name2) && empty($item->tax_name3))) {
                 $taxtype = $this->getTaxType($item->tax_id);
                 if (!empty($item->tax_name1)) {
-                    $this->orderxdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate1);
+                    $this->orderxdocument->addDocumentPositionTax($taxtype, 'VAT', (string)$item->tax_rate1);
                     $this->addtoTaxMap($taxtype, $linenetamount, $item->tax_rate1);
                 } elseif (!empty($item->tax_name2)) {
                     $this->orderxdocument->addDocumentPositionTax($taxtype, 'VAT', $item->tax_rate2);
@@ -163,7 +163,7 @@ class OrderXDocument extends AbstractService
             } else {
                 if (!empty($this->document->tax_name1)) {
                     $taxtype = $this->getTaxType($this->document->tax_name1);
-                    $this->orderxdocument->addDocumentPositionTax($taxtype, 'VAT', $this->document->tax_rate1);
+                    $this->orderxdocument->addDocumentPositionTax($taxtype, 'VAT', (string)$this->document->tax_rate1);
                     $this->addtoTaxMap($taxtype, $linenetamount, $this->document->tax_rate1);
                 } elseif (!empty($this->document->tax_name2)) {
                     $taxtype = $this->getTaxType($this->document->tax_name2);
@@ -183,19 +183,19 @@ class OrderXDocument extends AbstractService
         }
 
         $this->orderxdocument->setDocumentSummation(
-            $this->document->amount,
-            $this->document->balance,
-            $invoicing_data->getSubTotal(),
-            $invoicing_data->getTotalSurcharges(),
+            (string)$this->document->amount,
+            (string)$this->document->balance,
+            (string)$invoicing_data->getSubTotal(),
+            (string)$invoicing_data->getTotalSurcharges(),
             // $invoicing_data->getTotalDiscount(),
-            $invoicing_data->getSubTotal(),
-            $invoicing_data->getItemTotalTaxes(),
+            (string)$invoicing_data->getSubTotal(),
+            (string)$invoicing_data->getItemTotalTaxes(),
             // 0.0,
             // ($this->document->amount - $this->document->balance)
         );
 
         foreach ($this->tax_map as $item) {
-            $this->orderxdocument->addDocumentTax($item["tax_type"], "VAT", $item["net_amount"], $item["tax_rate"] * $item["net_amount"], $item["tax_rate"] * 100);
+            $this->orderxdocument->addDocumentTax($item["tax_type"], "VAT", (string)$item["net_amount"], (string)($item["tax_rate"] * $item["net_amount"]), (string)($item["tax_rate"] * 100));
         }
 
         // The validity can be checked using https://portal3.gefeg.com/invoice/validation or https://e-rechnung.bayern.de/app/#/upload

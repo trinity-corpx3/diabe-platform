@@ -160,8 +160,8 @@ class RegistroAlta
             ->setNombreRazonEmisor($this->company->present()->name()) //company name
             ->setTipoFactura('F1') //invoice type
             ->setDescripcionOperacion('Alta')// It IS! manadatory - max chars 500
-            ->setCuotaTotal($this->calc->getTotalTaxes()) //total taxes
-            ->setImporteTotal($this->calc->getTotal()) //total invoice amount
+            ->setCuotaTotal((string)$this->calc->getTotalTaxes()) //total taxes
+            ->setImporteTotal((string)$this->calc->getTotal()) //total invoice amount
             ->setFechaHoraHusoGenRegistro($this->current_timestamp) //creation/submission timestamp
             ->setTipoHuella('01') //sha256
             ->setHuella('PLACEHOLDER_HUELLA');
@@ -221,9 +221,9 @@ class RegistroAlta
                 'Impuesto' => $this->calculateTaxType($tax['name']), //tax type
                 'ClaveRegimen' => $this->calculateRegimeClassification($tax['name']), //tax regime classification code
                 'CalificacionOperacion' => $this->calculateOperationClassification($tax['name']), //operation classification code
-                'BaseImponible' => $tax['base_amount'] ?? $this->calc->getNetSubtotal(), // taxable base amount - fixed: key matches DetalleDesglose::toXml()
-                'TipoImpositivo' => $tax['tax_rate'], // Tax Rate
-                'Cuota' => $tax['total'] // Tax Amount - fixed: key matches DetalleDesglose::toXml()
+                'BaseImponible' => (string)($tax['base_amount'] ?? $this->calc->getNetSubtotal()), // taxable base amount - fixed: key matches DetalleDesglose::toXml()
+                'TipoImpositivo' => (string)$tax['tax_rate'], // Tax Rate
+                'Cuota' => (string)$tax['total'] // Tax Amount - fixed: key matches DetalleDesglose::toXml()
             ];
 
             $detalle_desglose = new DetalleDesglose();
@@ -262,7 +262,7 @@ class RegistroAlta
                 'Impuesto' => $impuesto, //tax type
                 'ClaveRegimen' => $clave_regimen, //tax regime classification code
                 'CalificacionOperacion' => $calificacion, //operation classification code
-                'BaseImponible' => $this->calc->getNetSubtotal(), // taxable base amount - fixed: key matches DetalleDesglose::toXml()
+                'BaseImponible' => (string)$this->calc->getNetSubtotal(), // taxable base amount - fixed: key matches DetalleDesglose::toXml()
             ];
 
             $detalle_desglose = new DetalleDesglose();

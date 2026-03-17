@@ -108,22 +108,22 @@ class ZugferdEDocument extends AbstractService
 
         if ($this->document->custom_surcharge1 > 0) {
             $surcharge = $this->document->uses_inclusive_taxes ? ($this->document->custom_surcharge1 / (1 + ($item["tax_rate"] / 100))) : $this->document->custom_surcharge1;
-            $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"], null, null, null, null, null, null, ctrans('texts.surcharge'));
+            $this->xdocument->addDocumentAllowanceCharge((string)$surcharge, true, $tax_code, "VAT", (string)$item["tax_rate"], null, null, null, null, null, null, ctrans('texts.surcharge'));
         }
 
         if ($this->document->custom_surcharge2 > 0) {
             $surcharge = $this->document->uses_inclusive_taxes ? ($this->document->custom_surcharge2 / (1 + ($item["tax_rate"] / 100))) : $this->document->custom_surcharge2;
-            $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"], null, null, null, null, null, null, ctrans('texts.surcharge'));
+            $this->xdocument->addDocumentAllowanceCharge((string)$surcharge, true, $tax_code, "VAT", (string)$item["tax_rate"], null, null, null, null, null, null, ctrans('texts.surcharge'));
         }
 
         if ($this->document->custom_surcharge3 > 0) {
             $surcharge = $this->document->uses_inclusive_taxes ? ($this->document->custom_surcharge3 / (1 + ($item["tax_rate"] / 100))) : $this->document->custom_surcharge3;
-            $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"], null, null, null, null, null, null, ctrans('texts.surcharge'));
+            $this->xdocument->addDocumentAllowanceCharge((string)$surcharge, true, $tax_code, "VAT", (string)$item["tax_rate"], null, null, null, null, null, null, ctrans('texts.surcharge'));
         }
 
         if ($this->document->custom_surcharge4 > 0) {
             $surcharge = $this->document->uses_inclusive_taxes ? ($this->document->custom_surcharge4 / (1 + ($item["tax_rate"] / 100))) : $this->document->custom_surcharge4;
-            $this->xdocument->addDocumentAllowanceCharge($surcharge, true, $tax_code, "VAT", $item["tax_rate"], null, null, null, null, null, null, ctrans('texts.surcharge'));
+            $this->xdocument->addDocumentAllowanceCharge((string)$surcharge, true, $tax_code, "VAT", (string)$item["tax_rate"], null, null, null, null, null, null, ctrans('texts.surcharge'));
         }
 
         return $this;
@@ -196,9 +196,9 @@ class ZugferdEDocument extends AbstractService
             $this->xdocument->addDocumentTax(
                 $this->tax_code,
                 "VAT",
-                $base_amount,
-                $tax_amount,
-                $tax_rate,
+                (string)$base_amount,
+                (string)$tax_amount,
+                (string)$tax_rate,
                 null,
                 $this->exemption_reason_code
             );
@@ -207,7 +207,7 @@ class ZugferdEDocument extends AbstractService
             if ($this->calc->getTotalDiscount() > 0) {
 
                 $this->xdocument->addDocumentAllowanceCharge(
-                    $this->calc->getTotalDiscount(),
+                    (string)$this->calc->getTotalDiscount(),
                     false,
                     $this->tax_code,
                     "VAT",
@@ -254,11 +254,11 @@ class ZugferdEDocument extends AbstractService
                 $ratio = $item["base_amount"] / $net_subtotal;
 
                 $this->xdocument->addDocumentAllowanceCharge(
-                    round($this->calc->getTotalDiscount() * $ratio, 2),
+                    (string)round($this->calc->getTotalDiscount() * $ratio, 2),
                     false,
                     $this->getTaxType($item["tax_id"] ?? '2'),
                     "VAT",
-                    $item["tax_rate"],
+                    (string)$item["tax_rate"],
                     null,
                     null,
                     null,
@@ -367,16 +367,16 @@ class ZugferdEDocument extends AbstractService
         // ]);
 
         $this->xdocument->setDocumentSummation(
-            $this->document->amount,                    // Total amount with VAT
-            $this->document->balance,                   // Amount due
-            $subtotal,                                  // Sum before tax
-            $this->document->uses_inclusive_taxes ? $this->calc->getTotalNetSurcharges() : $this->calc->getTotalSurcharges(),         // Total charges
-            $document_discount,                         // Total allowances
-            $taxable_amount,                           // Tax basis total (net)
-            round($total_tax, 2),                       // Total tax amount
-            0,
+            (string)$this->document->amount,                    // Total amount with VAT
+            (string)$this->document->balance,                   // Amount due
+            (string)$subtotal,                                  // Sum before tax
+            (string)($this->document->uses_inclusive_taxes ? $this->calc->getTotalNetSurcharges() : $this->calc->getTotalSurcharges()),         // Total charges
+            (string)$document_discount,                         // Total allowances
+            (string)$taxable_amount,                           // Tax basis total (net)
+            (string)round($total_tax, 2),                       // Total tax amount
+            (string)0,
             // round($this->document->amount - ($base_taxable_amount+$total_tax),2),                                       // Total rounding amount
-            $this->document->amount - $this->document->balance  // Amount already paid
+            (string)($this->document->amount - $this->document->balance)  // Amount already paid
         );
 
         return $this;
@@ -395,11 +395,11 @@ class ZugferdEDocument extends AbstractService
                     $item->notes
                 )
                 ->setDocumentPositionQuantity(
-                    $item->quantity,
+                    (string)$item->quantity,
                     $item->type_id == 2 ? "HUR" : "H87"
                 )
                 ->setDocumentPositionNetPrice(
-                    $this->document->uses_inclusive_taxes ? $item->net_cost : $item->cost
+                    (string)($this->document->uses_inclusive_taxes ? $item->net_cost : $item->cost)
                 );
 
             // 2. ALWAYS add tax information (even if zero)
@@ -424,12 +424,12 @@ class ZugferdEDocument extends AbstractService
             if ($item->discount > 0) {
                 $line_discount = $this->calculateTotalItemDiscountAmount($item);
                 $this->xdocument->addDocumentPositionGrossPriceAllowanceCharge(
-                    abs($line_discount),
+                    (string)abs($line_discount),
                     false
                 );
             }
             // 4. Finally add monetary summation
-            $this->xdocument->setDocumentPositionLineSummation($this->document->uses_inclusive_taxes ? ($item->line_total - $item->tax_amount) : $item->line_total);
+            $this->xdocument->setDocumentPositionLineSummation((string)($this->document->uses_inclusive_taxes ? ($item->line_total - $item->tax_amount) : $item->line_total));
         }
 
         return $this;

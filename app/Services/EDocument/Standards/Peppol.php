@@ -605,23 +605,23 @@ class Peppol extends AbstractService
 
         $lea = new LineExtensionAmount();
         $lea->currencyID = $this->invoice->client->currency()->code;
-        $lea->amount = $this->invoice->uses_inclusive_taxes ? round($this->invoice->amount - $this->invoice->total_taxes, 2) : $this->calc->getSubtotal();
+        $lea->amount = (string)($this->invoice->uses_inclusive_taxes ? round($this->invoice->amount - $this->invoice->total_taxes, 2) : $this->calc->getSubtotal());
         $lmt->LineExtensionAmount = $lea;
 
         $tea = new TaxExclusiveAmount();
         $tea->currencyID = $this->invoice->client->currency()->code;
 
-        $tea->amount = round($this->invoice->amount - $this->invoice->total_taxes, 2);
+        $tea->amount = (string)round($this->invoice->amount - $this->invoice->total_taxes, 2);
         $lmt->TaxExclusiveAmount = $tea;
 
         $tia = new TaxInclusiveAmount();
         $tia->currencyID = $this->invoice->client->currency()->code;
-        $tia->amount = $this->invoice->amount;
+        $tia->amount = (string)$this->invoice->amount;
         $lmt->TaxInclusiveAmount = $tia;
 
         $pa = new PayableAmount();
         $pa->currencyID = $this->invoice->client->currency()->code;
-        $pa->amount = $this->invoice->amount;
+        $pa->amount = (string)$this->invoice->amount;
         $lmt->PayableAmount = $pa;
 
         $am = new \InvoiceNinja\EInvoice\Models\Peppol\AmountType\AllowanceTotalAmount();
@@ -868,13 +868,13 @@ class Peppol extends AbstractService
             $line->ID = $id;
 
             $iq = new \InvoiceNinja\EInvoice\Models\Peppol\QuantityType\InvoicedQuantity();
-            $iq->amount = $item->quantity;
+            $iq->amount = (string)$item->quantity;
             $iq->unitCode = $item->unit_code ?? 'C62';
             $line->InvoicedQuantity = $iq;
 
             $lea = new LineExtensionAmount();
             $lea->currencyID = $this->invoice->client->currency()->code;
-            $lea->amount = $this->invoice->uses_inclusive_taxes ? round($item->line_total - $this->calcInclusiveLineTax($item->tax_rate1, $item->line_total), 2) : round($item->line_total, 2);
+            $lea->amount = (string)($this->invoice->uses_inclusive_taxes ? round($item->line_total - $this->calcInclusiveLineTax($item->tax_rate1, $item->line_total), 2) : round($item->line_total, 2));
             $line->LineExtensionAmount = $lea;
             $line->Item = $_item;
 
