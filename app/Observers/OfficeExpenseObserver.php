@@ -78,18 +78,20 @@ class OfficeExpenseObserver
                 $amount = round($baseAmount + $remainder, 2);
             }
 
-            Expense::create([
-                'company_id' => $officeExpense->company_id,
-                'user_id' => $officeExpense->user_id,
+            $expense = new Expense();
+            $expense->company_id = $officeExpense->company_id;
+            $expense->user_id = $officeExpense->user_id;
+            $expense->fill([
                 'vendor_id' => $officeExpense->vendor_id,
                 'category_id' => $officeExpense->category_id,
                 'project_id' => $project->id,
                 'office_expense_id' => $officeExpense->id,
                 'amount' => $amount,
-                'date' => $officeExpense->date,
+                'date' => $officeExpense->date ? $officeExpense->date->format('Y-m-d') : null,
                 'public_notes' => "Gasto de Oficina prorrateado (#{$officeExpense->id})",
                 'private_notes' => "Generado automáticamente por Gasto de Oficina #{$officeExpense->id}",
             ]);
+            $expense->save();
         }
     }
 }

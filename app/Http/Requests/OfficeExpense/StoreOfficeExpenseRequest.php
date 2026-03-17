@@ -35,9 +35,16 @@ class StoreOfficeExpenseRequest extends Request
     public function prepareForValidation()
     {
         $input = $this->all();
-        Log::info('OfficeExpense Request Input before decoding:', $input);
+
+        // Convert empty strings to null for optional IDs to avoid decoding issues in Request.php
+        foreach (['vendor_id', 'category_id'] as $key) {
+            if (isset($input[$key]) && trim($input[$key]) === '') {
+                $input[$key] = null;
+            }
+        }
+
         $input = $this->decodePrimaryKeys($input);
-        Log::info('OfficeExpense Request Input after decoding:', $input);
+
         $this->replace($input);
     }
 }
