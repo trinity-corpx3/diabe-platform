@@ -56,8 +56,8 @@ class OfficeExpenseTransformer extends EntityTransformer
             'public_notes' => (string) $officeExpense->public_notes ?: '',
             'private_notes' => (string) $officeExpense->private_notes ?: '',
             'is_deleted' => (bool) $officeExpense->is_deleted,
-            'updated_at' => (int) $officeExpense->updated_at,
-            'created_at' => (int) $officeExpense->created_at,
+            'updated_at' => $officeExpense->updated_at ? $officeExpense->updated_at->getTimestamp() : 0,
+            'created_at' => $officeExpense->created_at ? $officeExpense->created_at->getTimestamp() : 0,
             'entity_type' => 'office_expense',
         ];
     }
