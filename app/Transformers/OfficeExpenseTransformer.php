@@ -52,7 +52,7 @@ class OfficeExpenseTransformer extends EntityTransformer
             'vendor_id' => $this->encodePrimaryKey($officeExpense->vendor_id),
             'category_id' => $this->encodePrimaryKey($officeExpense->category_id),
             'amount' => (float) $officeExpense->amount ?: 0,
-            'date' => $officeExpense->date ?: '',
+            'date' => $officeExpense->date ? $officeExpense->date->format('Y-m-d') : '',
             'public_notes' => (string) $officeExpense->public_notes ?: '',
             'private_notes' => (string) $officeExpense->private_notes ?: '',
             'is_deleted' => (bool) $officeExpense->is_deleted,
