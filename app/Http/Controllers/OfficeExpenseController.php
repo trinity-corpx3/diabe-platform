@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Filters\OfficeExpenseFilters;
 use App\Models\OfficeExpense;
 use App\Transformers\OfficeExpenseTransformer;
+use App\Utils\Traits\MakesHash;
 use App\Http\Requests\OfficeExpense\StoreOfficeExpenseRequest;
 use App\Http\Requests\OfficeExpense\UpdateOfficeExpenseRequest;
 use Illuminate\Http\Request;
@@ -12,6 +13,8 @@ use Illuminate\Http\Response;
 
 class OfficeExpenseController extends BaseController
 {
+    use MakesHash;
+
     protected $entity_type = OfficeExpense::class;
     protected $entity_transformer = OfficeExpenseTransformer::class;
 
@@ -58,7 +61,7 @@ class OfficeExpenseController extends BaseController
 
     public function bulk(Request $request)
     {
-        $ids = (array) $request->input('ids', []);
+        $ids = $this->transformKeys((array) $request->input('ids', []));
         $action = (string) $request->input('action', '');
 
         if (empty($ids) || $action === '') {
