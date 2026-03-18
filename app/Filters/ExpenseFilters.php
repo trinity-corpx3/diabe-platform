@@ -290,6 +290,6 @@ class ExpenseFilters extends QueryFilters
      */
     public function entityFilter(): Builder
     {
-        return $this->builder->company();
+        return $this->builder->company()->whereNull('office_expense_id');
     }
 }

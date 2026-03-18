@@ -2,11 +2,7 @@
 
 namespace App\Observers;
 
-use App\Models\Expense;
-use App\Models\Project;
 use App\Models\OfficeExpense;
-use App\Factory\ExpenseFactory;
-use Illuminate\Support\Carbon;
 
 class OfficeExpenseObserver
 {
@@ -18,7 +14,6 @@ class OfficeExpenseObserver
      */
     public function created(OfficeExpense $officeExpense)
     {
-        $this->prorate($officeExpense);
     }
 
     /**
@@ -29,10 +24,6 @@ class OfficeExpenseObserver
      */
     public function updated(OfficeExpense $officeExpense)
     {
-        // If amount changed or it was just restored, we redistribution
-        if ($officeExpense->isDirty('amount') || $officeExpense->wasRecentlyCreated) {
-            $this->prorate($officeExpense);
-        }
     }
 
     /**
@@ -44,68 +35,5 @@ class OfficeExpenseObserver
     public function deleted(OfficeExpense $officeExpense)
     {
         $officeExpense->expenses()->delete();
-    }
-
-    /**
-     * Prorate the office expense among active projects.
-     *
-     * @param  \App\Models\OfficeExpense  $officeExpense
-     * @return void
-     */
-    private function prorate(OfficeExpense $officeExpense)
-    {
-        // Deleting existing child expenses for clean redistribution on update
-        $officeExpense->expenses()->delete();
-
-        $activeProjects = Project::query()->where('company_id', $officeExpense->company_id)
-            ->where('is_deleted', '=', 0)
-            ->whereNull('deleted_at')
-            ->get();
-
-        $projectCount = $activeProjects->count();
-
-        if ($projectCount === 0) {
-            return;
-        }
-
-        $totalAmount = (float) $officeExpense->amount;
-        $baseAmount = floor(($totalAmount / $projectCount) * 100) / 100;
-        $remainder = round($totalAmount - ($baseAmount * $projectCount), 2);
-
-        $companyCurrency = $officeExpense->company->settings->currency_id ?? 1;
-
-        foreach ($activeProjects as $index => $project) {
-            $amount = $baseAmount;
-
-            // Add the "orphan centavo" to the last project
-            if ($index === $projectCount - 1) {
-                $amount = round($baseAmount + $remainder, 2);
-            }
-
-            // Using Factory to ensure all default mandatory fields are initialized
-            $expense = ExpenseFactory::create($officeExpense->company_id, $officeExpense->user_id);
-            
-            $expense->fill([
-                'vendor_id' => $officeExpense->vendor_id,
-                'category_id' => $officeExpense->category_id,
-                'project_id' => $project->id,
-                'office_expense_id' => $officeExpense->id,
-                'amount' => $amount,
-                'foreign_amount' => $amount,
-                'currency_id' => $companyCurrency,
-                'invoice_currency_id' => $companyCurrency,
-                'assigned_user_id' => $officeExpense->user_id,
-                'date' => $officeExpense->date ? Carbon::parse($officeExpense->date)->format('Y-m-d') : now()->format('Y-m-d'),
-                'public_notes' => "Gasto de Oficina prorrateado (#{$officeExpense->id})",
-                'private_notes' => "Generado automáticamente por Gasto de Oficina #{$officeExpense->id}",
-                'transaction_reference' => "OF-{$officeExpense->id}",
-            ]);
-
-            // Ensure company_id and user_id are set (Factory does this, but being explicit)
-            $expense->company_id = $officeExpense->company_id;
-            $expense->user_id = $officeExpense->user_id;
-
-            $expense->save();
-        }
     }
 }
