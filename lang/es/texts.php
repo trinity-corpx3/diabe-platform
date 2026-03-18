@@ -1819,7 +1819,7 @@ $lang = array(
   'inactive_logout' => 'You have been logged out due to inactivity',
   'reports' => 'Informes',
   'total_profit' => 'Total Profit',
-  'total_expenses' => 'Total Expenses',
+  'total_expenses' => 'Total de Gastos',
   'quote_to' => 'Quote to',
 
   // Limits
