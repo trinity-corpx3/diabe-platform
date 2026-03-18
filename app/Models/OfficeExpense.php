@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OfficeExpense extends BaseModel
 {
     use SoftDeletes;
+    use Filterable;
 
     protected $fillable = [
         'company_id',

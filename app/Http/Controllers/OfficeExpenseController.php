@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Filters\OfficeExpenseFilters;
 use App\Models\OfficeExpense;
 use App\Transformers\OfficeExpenseTransformer;
 use App\Http\Requests\OfficeExpense\StoreOfficeExpenseRequest;
@@ -14,11 +15,13 @@ class OfficeExpenseController extends BaseController
     protected $entity_type = OfficeExpense::class;
     protected $entity_transformer = OfficeExpenseTransformer::class;
 
-    public function index()
+    public function index(OfficeExpenseFilters $filters)
     {
-        $query = OfficeExpense::where('company_id', request()->user()->company()->id)
-            ->where('is_deleted', false)
-            ->orderBy('date', 'desc');
+        if (! request()->has('status')) {
+            request()->merge(['status' => 'active']);
+        }
+
+        $query = OfficeExpense::filter($filters);
 
         return $this->listResponse($query);
     }
@@ -73,17 +76,29 @@ class OfficeExpenseController extends BaseController
         foreach ($officeExpenses as $officeExpense) {
             switch ($action) {
                 case 'archive':
-                    $officeExpense->is_deleted = true;
-                    $officeExpense->save();
-                    $officeExpense->delete();
+                    if (! $officeExpense->trashed()) {
+                        $officeExpense->delete();
+                    }
                     break;
                 case 'restore':
-                    $officeExpense->restore();
-                    $officeExpense->is_deleted = false;
-                    $officeExpense->save();
+                    if ($officeExpense->is_deleted) {
+                        $officeExpense->is_deleted = false;
+                        $officeExpense->saveQuietly();
+                    }
+
+                    if ($officeExpense->trashed()) {
+                        $officeExpense->restore();
+                    }
                     break;
                 case 'delete':
-                    $officeExpense->forceDelete();
+                    if (! $officeExpense->is_deleted) {
+                        $officeExpense->is_deleted = true;
+                        $officeExpense->save();
+                    }
+
+                    if (! $officeExpense->trashed()) {
+                        $officeExpense->delete();
+                    }
                     break;
             }
         }
