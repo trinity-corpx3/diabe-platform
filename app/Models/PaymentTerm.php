@@ -12,6 +12,7 @@
 
 namespace App\Models;
 
+use App\Utils\PaymentTerms;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -63,6 +64,21 @@ class PaymentTerm extends BaseModel
     public function getNumDays()
     {
         return $this->num_days == -1 ? 0 : $this->num_days;
+    }
+
+    public function isMonthlyTerm(): bool
+    {
+        return PaymentTerms::isMonthlyTerm($this->num_days);
+    }
+
+    public function getMonthCount(): int
+    {
+        return PaymentTerms::getMonths($this->num_days);
+    }
+
+    public function getLabel(): string
+    {
+        return PaymentTerms::getLabel($this->num_days);
     }
 
     public static function getCompanyTerms()

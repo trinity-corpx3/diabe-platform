@@ -12,6 +12,7 @@
 
 namespace App\Models;
 
+use App\Utils\PaymentTerms;
 use App\Utils\Number;
 use Elastic\ScoutDriverPlus\Searchable;
 use Illuminate\Support\Carbon;
@@ -23,6 +24,7 @@ use App\Helpers\Invoice\InvoiceSumInclusive;
 use App\Services\Recurring\RecurringService;
 use App\Utils\Traits\Recurring\HasRecurrence;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Filterable;
 use App\Models\Presenters\RecurringInvoicePresenter;
 
 /**
@@ -138,7 +140,6 @@ class RecurringInvoice extends BaseModel
     use HasRecurrence;
     use PresentableTrait;
     use Searchable;
-
 
     protected $presenter = RecurringInvoicePresenter::class;
 
@@ -557,7 +558,7 @@ class RecurringInvoice extends BaseModel
             case self::FREQUENCY_FOUR_MONTHS:
                 return Carbon::parse($this->next_send_date_client)->startOfDay()->addMonthsNoOverflow(4);
             case self::FREQUENCY_SIX_MONTHS:
-                return Carbon::parse($this->next_send_date_client)->startOfDay()->addMonthsNoOverflow(6);
+                return Carbon::parse($this->next_send_date_client)->addMonthsNoOverflow(6);
             case self::FREQUENCY_ANNUALLY:
                 return Carbon::parse($this->next_send_date_client)->startOfDay()->addYear();
             case self::FREQUENCY_TWO_YEARS:
@@ -826,15 +827,13 @@ class RecurringInvoice extends BaseModel
      */
     public function calculateDateFromTerms($date)
     {
-        $new_date = Carbon::parse($date);
-
         $client_payment_terms = $this->client->getSetting('payment_terms');
 
         if ($client_payment_terms == '') {//no due date! return null;
             return null;
         }
 
-        return $new_date->addDays((int)$client_payment_terms); //add the number of days in the payment terms to the date
+        return PaymentTerms::resolveDueDate($date, $client_payment_terms, $this->project_id ? $this->project : null);
     }
 
     /**

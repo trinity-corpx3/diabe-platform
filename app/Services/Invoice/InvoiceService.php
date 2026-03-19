@@ -20,6 +20,7 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\CompanyGateway;
 use Illuminate\Support\Carbon;
+use App\Utils\PaymentTerms;
 use App\Utils\Traits\MakesHash;
 use App\Jobs\Entity\CreateRawPdf;
 use App\Services\Invoice\LocationData;
@@ -300,11 +301,21 @@ class InvoiceService
             return $this;
         }
 
+        $resolvedDate = PaymentTerms::resolveDueDate(
+            $this->invoice->date,
+            $this->invoice->client->getSetting('payment_terms'),
+            $this->invoice->project_id ? $this->invoice->project : null
+        );
+
+        if (! $resolvedDate) {
+            return $this;
+        }
+
         //12-10-2022
         if ($this->invoice->partial > 0 && !$this->invoice->partial_due_date) {
-            $this->invoice->partial_due_date = Carbon::parse($this->invoice->date)->addDays((int)$this->invoice->client->getSetting('payment_terms'));
+            $this->invoice->partial_due_date = $resolvedDate;
         } else {
-            $this->invoice->due_date = Carbon::parse($this->invoice->date)->addDays((int)$this->invoice->client->getSetting('payment_terms'));
+            $this->invoice->due_date = $resolvedDate;
         }
 
         return $this;

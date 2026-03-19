@@ -15,6 +15,7 @@ namespace App\Http\Requests\TaskScheduler;
 use App\Http\Requests\Request;
 use App\Models\RecurringInvoice;
 use App\Models\RecurringQuote;
+use App\Utils\PaymentTerms;
 use Illuminate\Support\Carbon;
 
 class PaymentScheduleRequest extends Request
@@ -92,7 +93,13 @@ class PaymentScheduleRequest extends Request
         }
 
         if (isset($input['frequency_id']) && isset($input['remaining_cycles'])) {
-            $due_date = $input['next_run'] ?? $this->invoice->due_date ?? Carbon::parse($this->invoice->date)->addDays((int)$this->invoice->client->getSetting('payment_terms'));
+            $resolvedDate = PaymentTerms::resolveDueDate(
+                $this->invoice->date,
+                $this->invoice->client->getSetting('payment_terms'),
+                $this->invoice->project_id ? $this->invoice->project : null
+            );
+
+            $due_date = $input['next_run'] ?? $this->invoice->due_date ?? ($resolvedDate ? $resolvedDate->format('Y-m-d') : $this->invoice->date);
             $input['parameters']['schedule'] = $this->generateSchedule($input['frequency_id'], $input['remaining_cycles'], Carbon::parse($due_date));
         }
 

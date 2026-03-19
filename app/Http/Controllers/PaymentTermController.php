@@ -23,6 +23,7 @@ use App\Http\Requests\PaymentTerm\UpdatePaymentTermRequest;
 use App\Models\PaymentTerm;
 use App\Repositories\PaymentTermRepository;
 use App\Transformers\PaymentTermTransformer;
+use App\Utils\PaymentTerms as PaymentTermsHelper;
 use App\Utils\Traits\MakesHash;
 use Illuminate\Http\Response;
 
@@ -85,7 +86,33 @@ class PaymentTermController extends BaseController
      */
     public function index(PaymentTermFilters $filters)
     {
-        $payment_terms = PaymentTerm::filter($filters);
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        $existingTerms = PaymentTerm::query()
+            ->where('company_id', $user->company()->id)
+            ->pluck('num_days')
+            ->map(fn ($value) => (int) $value)
+            ->all();
+
+        $missingTerms = collect(PaymentTermsHelper::defaultTerms())
+            ->reject(fn ($term) => in_array($term, $existingTerms, true))
+            ->map(fn ($term) => [
+                'num_days' => $term,
+                'name' => '',
+                'company_id' => $user->company()->id,
+                'user_id' => $user->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])
+            ->values()
+            ->all();
+
+        if (! empty($missingTerms)) {
+            PaymentTerm::insert($missingTerms);
+        }
+
+        $payment_terms = PaymentTerm::filter($filters)->whereIn('num_days', PaymentTermsHelper::defaultTerms());
 
         return $this->listResponse($payment_terms);
     }

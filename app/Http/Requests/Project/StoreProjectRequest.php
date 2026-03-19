@@ -47,6 +47,7 @@ class StoreProjectRequest extends Request
         $rules['client_id'] = 'required|exists:clients,id,company_id,'.$user->company()->id;
         $rules['budgeted_hours'] = 'sometimes|numeric';
         $rules['task_rate'] = 'required|bail|numeric';
+        $rules['custom_value4'] = 'sometimes|nullable|integer|between:1,31';
 
         if (isset($this->number)) {
             $rules['number'] = Rule::unique('projects')->where('company_id', $user->company()->id);

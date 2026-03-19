@@ -13,6 +13,7 @@
 namespace App\Jobs\Company;
 
 use App\Models\PaymentTerm;
+use App\Utils\PaymentTerms as PaymentTermsHelper;
 use App\Utils\Traits\MakesHash;
 use Illuminate\Foundation\Bus\Dispatchable;
 
@@ -45,16 +46,16 @@ class CreateCompanyPaymentTerms
      */
     public function handle()
     {
-        $paymentTerms = [
-            ['num_days' => 0, 'name' => 'Net 0', 'company_id' => $this->company->id, 'user_id' => $this->user->id, 'created_at' => now(), 'updated_at' => now()],
-            ['num_days' => 7,  'name'  => '', 'company_id' => $this->company->id, 'user_id' => $this->user->id, 'created_at' => now(), 'updated_at' => now()],
-            ['num_days' => 10, 'name' => '', 'company_id' => $this->company->id, 'user_id' => $this->user->id, 'created_at' => now(), 'updated_at' => now()],
-            ['num_days' => 14, 'name' => '', 'company_id' => $this->company->id, 'user_id' => $this->user->id, 'created_at' => now(), 'updated_at' => now()],
-            ['num_days' => 15, 'name' => '', 'company_id' => $this->company->id, 'user_id' => $this->user->id, 'created_at' => now(), 'updated_at' => now()],
-            ['num_days' => 30, 'name' => '', 'company_id' => $this->company->id, 'user_id' => $this->user->id, 'created_at' => now(), 'updated_at' => now()],
-            ['num_days' => 60, 'name' => '', 'company_id' => $this->company->id, 'user_id' => $this->user->id, 'created_at' => now(), 'updated_at' => now()],
-            ['num_days' => 90, 'name' => '', 'company_id' => $this->company->id, 'user_id' => $this->user->id, 'created_at' => now(), 'updated_at' => now()],
-        ];
+        $paymentTerms = collect(PaymentTermsHelper::defaultTerms())->map(function ($term) {
+            return [
+                'num_days' => $term,
+                'name' => '',
+                'company_id' => $this->company->id,
+                'user_id' => $this->user->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        })->all();
 
         PaymentTerm::insert($paymentTerms);
     }

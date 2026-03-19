@@ -16,6 +16,7 @@ use App\Helpers\Invoice\InvoiceSum;
 use App\Helpers\Invoice\InvoiceSumInclusive;
 use App\Models\Presenters\RecurringQuotePresenter;
 use App\Services\Recurring\RecurringService;
+use App\Utils\PaymentTerms;
 use App\Utils\Traits\MakesHash;
 use App\Utils\Traits\Recurring\HasRecurrence;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -560,15 +561,13 @@ class RecurringQuote extends BaseModel
      */
     public function calculateDateFromTerms($date)
     {
-        $new_date = Carbon::parse($date);
-
         $client_payment_terms = $this->client->getSetting('payment_terms');
 
         if ($client_payment_terms == '') {//no due date! return null;
             return null;
         }
 
-        return $new_date->addDays((int)$client_payment_terms); //add the number of days in the payment terms to the date
+        return PaymentTerms::resolveDueDate($date, $client_payment_terms, $this->project_id ? $this->project : null);
     }
 
     /**
