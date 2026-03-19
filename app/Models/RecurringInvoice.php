@@ -24,7 +24,6 @@ use App\Helpers\Invoice\InvoiceSumInclusive;
 use App\Services\Recurring\RecurringService;
 use App\Utils\Traits\Recurring\HasRecurrence;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Filterable;
 use App\Models\Presenters\RecurringInvoicePresenter;
 
 /**
@@ -558,7 +557,7 @@ class RecurringInvoice extends BaseModel
             case self::FREQUENCY_FOUR_MONTHS:
                 return Carbon::parse($this->next_send_date_client)->startOfDay()->addMonthsNoOverflow(4);
             case self::FREQUENCY_SIX_MONTHS:
-                return Carbon::parse($this->next_send_date_client)->addMonthsNoOverflow(6);
+                return Carbon::parse($this->next_send_date_client)->startOfDay()->addMonthsNoOverflow(6);
             case self::FREQUENCY_ANNUALLY:
                 return Carbon::parse($this->next_send_date_client)->startOfDay()->addYear();
             case self::FREQUENCY_TWO_YEARS:
