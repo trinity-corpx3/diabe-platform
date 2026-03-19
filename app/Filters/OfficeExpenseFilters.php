@@ -15,6 +15,18 @@ use Illuminate\Database\Eloquent\Builder;
 
 class OfficeExpenseFilters extends QueryFilters
 {
+    public function status(string $filter = ''): Builder
+    {
+        $filters = array_filter(explode(',', $filter));
+        $allowed = array_values(array_intersect($filters, [self::STATUS_ACTIVE, self::STATUS_ARCHIVED]));
+
+        if (empty($allowed)) {
+            $allowed = [self::STATUS_ACTIVE, self::STATUS_ARCHIVED];
+        }
+
+        return parent::status(implode(',', $allowed));
+    }
+
     public function filter(string $filter = ''): Builder
     {
         if (strlen($filter) == 0) {

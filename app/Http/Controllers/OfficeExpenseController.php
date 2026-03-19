@@ -21,7 +21,7 @@ class OfficeExpenseController extends BaseController
     public function index(OfficeExpenseFilters $filters)
     {
         if (! request()->has('status')) {
-            request()->merge(['status' => 'active']);
+            request()->merge(['status' => 'active,archived']);
         }
 
         $query = OfficeExpense::filter($filters);

@@ -106,6 +106,10 @@ class ExpenseController extends BaseController
      */
     public function index(ExpenseFilters $filters)
     {
+        if (! request()->has('status')) {
+            request()->merge(['status' => 'active,archived']);
+        }
+
         $expenses = Expense::filter($filters);
 
         return $this->listResponse($expenses);

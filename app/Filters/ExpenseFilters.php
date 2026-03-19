@@ -19,6 +19,18 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class ExpenseFilters extends QueryFilters
 {
+    public function status(string $filter = ''): Builder
+    {
+        $filters = array_filter(explode(',', $filter));
+        $allowed = array_values(array_intersect($filters, [self::STATUS_ACTIVE, self::STATUS_ARCHIVED]));
+
+        if (empty($allowed)) {
+            $allowed = [self::STATUS_ACTIVE, self::STATUS_ARCHIVED];
+        }
+
+        return parent::status(implode(',', $allowed));
+    }
+
     /**
      * Filter based on search text.
      *
