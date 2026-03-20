@@ -88,6 +88,10 @@ class ProductController extends BaseController
      */
     public function index(ProductFilters $filters)
     {
+        if (! request()->has('status')) {
+            request()->merge(['status' => 'active,archived']);
+        }
+
         $products = Product::filter($filters);
 
         return $this->listResponse($products);

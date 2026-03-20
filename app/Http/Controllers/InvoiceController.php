@@ -123,6 +123,10 @@ class InvoiceController extends BaseController
     {
         set_time_limit(45);
 
+        if (! request()->has('status')) {
+            request()->merge(['status' => 'active,archived']);
+        }
+
         $invoices = Invoice::filter($filters);
 
         return $this->listResponse($invoices);
