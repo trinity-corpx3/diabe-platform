@@ -18,5 +18,6 @@
     "installments": "Parcialidades",
     "total_pending_amount": "Total pendiente del mes",
     "for": "para",
-    "last_updated": "Última actualización"
+    "last_updated": "Última actualización",
+    "view_all_months": "Ver todos los meses"
 }
