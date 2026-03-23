@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Utils\PaymentTerms;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -20,19 +21,30 @@ class DashboardController extends BaseController
             ->with(['client', 'payments'])
             ->where('company_id', auth()->user()->company()->id)
             ->where('is_deleted', 0)
-            ->whereNotNull('installment_count')
-            ->where('installment_count', '>', 0)
+            ->where('balance', '>', 0)
             ->get();
 
         $pendingPayments = [];
 
         foreach ($invoices as $invoice) {
-            if (!$invoice->installment_schedule) {
+            // Get payment terms from client or invoice
+            $paymentTerms = $invoice->client->getSetting('payment_terms') ?? '';
+            
+            // Skip if not monthly terms (must be > 100)
+            if (!PaymentTerms::isMonthlyTerm($paymentTerms)) {
                 continue;
             }
 
-            $schedule = json_decode($invoice->installment_schedule, true);
-            $installmentAmount = $invoice->amount / $invoice->installment_count;
+            $months = PaymentTerms::getMonths($paymentTerms);
+            
+            // Skip if no months or only 1 month (not installments)
+            if ($months <= 1) {
+                continue;
+            }
+
+            // Generate installment schedule dynamically
+            $schedule = $this->generateInstallmentSchedule($invoice, $months);
+            $installmentAmount = $invoice->amount / $months;
 
             foreach ($schedule as $index => $installment) {
                 $dueDate = Carbon::parse($installment['due_date']);
@@ -61,7 +73,7 @@ class DashboardController extends BaseController
                             'client_id' => $invoice->client_id,
                             'client_name' => $invoice->client->name ?? $invoice->client->display_name,
                             'installment_number' => $installmentNumber,
-                            'installment_total' => $invoice->installment_count,
+                            'installment_total' => $months,
                             'due_date' => $dueDate->format('Y-m-d'),
                             'amount' => $installmentAmount,
                             'paid_amount' => $paidAmount,
@@ -151,5 +163,23 @@ class DashboardController extends BaseController
         }
 
         return $totalPaid;
+    }
+
+    private function generateInstallmentSchedule(Invoice $invoice, int $months): array
+    {
+        $schedule = [];
+        $invoiceDate = Carbon::parse($invoice->date);
+        
+        for ($i = 0; $i < $months; $i++) {
+            $dueDate = $invoiceDate->copy()->addMonthsNoOverflow($i + 1);
+            
+            $schedule[] = [
+                'number' => $i + 1,
+                'due_date' => $dueDate->format('Y-m-d'),
+                'amount' => $invoice->amount / $months,
+            ];
+        }
+        
+        return $schedule;
     }
 }
