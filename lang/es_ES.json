@@ -12,5 +12,11 @@
     "office_expenses": "Gastos Oficina",
     "office_expense": "Gasto Oficina",
     "new_office_expense": "Nuevo Gasto Oficina",
-    "category": "Categoría"
+    "category": "Categoría",
+    "pending_payments": "Pagos pendientes",
+    "installment": "Parcialidad",
+    "installments": "Parcialidades",
+    "total_pending_amount": "Total pendiente del mes",
+    "for": "para",
+    "last_updated": "Última actualización"
 }

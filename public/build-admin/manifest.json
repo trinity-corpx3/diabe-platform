@@ -1,12 +1,20 @@
 {
-  "Resources/assets/css/app.css": {
-    "file": "assets/app-5896c2d6.css",
-    "isEntry": true,
-    "src": "Resources/assets/css/app.css"
-  },
-  "Resources/assets/js/app.js": {
-    "file": "assets/app-4ed993c7.js",
-    "isEntry": true,
-    "src": "Resources/assets/js/app.js"
-  }
+  "short_name": "Invoice Ninja (React)",
+  "name": "Invoice Ninja (React)",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo180.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
 }

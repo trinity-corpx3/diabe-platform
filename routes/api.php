@@ -180,6 +180,8 @@ Route::group(['middleware' => ['throttle:api', 'token_auth', 'valid_json', 'loca
     Route::post('charts/chart_summary_v2', [ChartController::class, 'chart_summaryV2'])->name('chart.chart_summary_v2');
     Route::post('charts/calculated_fields', [ChartController::class, 'calculatedFields'])->name('chart.calculated_fields');
 
+    Route::get('dashboard/pending_payments', [\App\Http\Controllers\DashboardController::class, 'pendingPayments'])->name('dashboard.pending_payments');
+
     Route::post('claim_license', [LicenseController::class, 'index'])->name('license.index');
     Route::post('check_license', [LicenseController::class, 'check'])->name('license.check');
 
