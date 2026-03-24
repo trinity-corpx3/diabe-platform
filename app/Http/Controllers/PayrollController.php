@@ -216,17 +216,25 @@ class PayrollController extends BaseController
 
         $entry = PayrollEntry::where('company_id', $company->id)->findOrFail($id);
 
-        $request->validate([
-            'worker_name' => 'sometimes|string|max:255',
-            'date' => 'sometimes|date',
-            'base_weekly_wage' => 'sometimes|numeric|min:0',
-            'daily_wage' => 'sometimes|numeric|min:0',
-            'overtime_hours' => 'nullable|numeric|min:0',
-            'overtime_rate' => 'nullable|numeric|min:0',
-            'days_worked' => 'nullable|integer|min:0|max:7',
-            'project_id' => 'nullable|string',
-            'notes' => 'nullable|string|max:500',
-        ]);
+        try {
+            $request->validate([
+                'worker_name' => 'sometimes|string|max:255',
+                'date' => 'sometimes|date',
+                'base_weekly_wage' => 'nullable|numeric|min:0',
+                'daily_wage' => 'nullable|numeric|min:0',
+                'overtime_hours' => 'nullable|numeric|min:0',
+                'overtime_rate' => 'nullable|numeric|min:0',
+                'days_worked' => 'nullable|integer|min:0|max:7',
+                'project_id' => 'nullable|string',
+                'notes' => 'nullable|string|max:500',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Payroll update validation failed', [
+                'errors' => $e->errors(),
+                'input' => $request->all(),
+            ]);
+            throw $e;
+        }
 
         $fillable = $request->only([
             'worker_name',
