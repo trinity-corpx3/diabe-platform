@@ -33,6 +33,9 @@ class EmployeeDiscountController extends Controller
         // Validar que el empleado existe
         $employee = User::findOrFail($employeeId);
 
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
         // Crear el descuento (monto_total = descuento_semanal para descuentos únicos)
         $discount = EmployeeDiscount::create([
             'employee_id' => $employeeId,
@@ -41,7 +44,7 @@ class EmployeeDiscountController extends Controller
             'descuento_semanal' => $validated['descuento_semanal'],
             'fecha_inicio' => $validated['fecha_inicio'] ?? now()->format('Y-m-d'),
             'notas' => $validated['notas'] ?? null,
-            'created_by' => Auth::id(),
+            'created_by' => $user->id,
         ]);
 
         return response()->json($discount->load(['applications', 'creator']), 201);
