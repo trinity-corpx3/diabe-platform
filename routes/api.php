@@ -48,6 +48,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaxRateController;
 use App\Http\Controllers\WebCronController;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\EmployeeDiscountController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EInvoiceController;
@@ -529,6 +530,14 @@ Route::post('api/v1/ppcp/webhook', [PayPalPPCPPaymentDriver::class, 'processWebh
 
 Route::get('quickbooks/authorize/{token}', [ImportQuickbooksController::class, 'authorizeQuickbooks'])->name('quickbooks.authorize');
 Route::get('quickbooks/authorized', [ImportQuickbooksController::class, 'onAuthorized'])->name('quickbooks.authorized');
+
+// Employee Discounts Routes
+Route::get('api/v1/employees/{employeeId}/discounts', [EmployeeDiscountController::class, 'index']);
+Route::post('api/v1/employees/{employeeId}/discounts', [EmployeeDiscountController::class, 'store']);
+Route::patch('api/v1/employees/{employeeId}/discounts/{discountId}', [EmployeeDiscountController::class, 'update']);
+Route::delete('api/v1/employees/{employeeId}/discounts/{discountId}', [EmployeeDiscountController::class, 'destroy']);
+Route::get('api/v1/employees/{employeeId}/discounts/pending-balance', [EmployeeDiscountController::class, 'pendingBalance']);
+Route::get('api/v1/payroll/discounts/summary', [EmployeeDiscountController::class, 'summary']);
 
 Route::fallback([BaseController::class, 'notFound'])->middleware('throttle:404');
 

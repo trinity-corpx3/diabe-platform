@@ -89,6 +89,64 @@ class PayrollEntry extends BaseModel
         return $this->belongsTo(User::class)->withTrashed();
     }
 
+    public function discountApplications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PayrollDiscountApplication::class, 'payroll_week_id');
+    }
+
+    /**
+     * Aplicar descuentos activos del empleado a esta nómina semanal.
+     * Retorna el monto total de descuentos aplicados.
+     */
+    public function aplicarDescuentos(): float
+    {
+        $empleado = $this->user;
+        if (!$empleado) {
+            return 0;
+        }
+
+        // Obtener descuentos activos ordenados por fecha de inicio
+        $descuentosActivos = EmployeeDiscount::where('employee_id', $empleado->id)
+            ->where('estado', 'activo')
+            ->where('saldo_restante', '>', 0)
+            ->orderBy('fecha_inicio', 'asc')
+            ->get();
+
+        if ($descuentosActivos->isEmpty()) {
+            return 0;
+        }
+
+        // Calcular neto disponible (total_pay - IMSS - ISR - otros descuentos ya aplicados)
+        $netoDisponible = $this->total_pay;
+        $totalDescuentosAplicados = 0;
+
+        foreach ($descuentosActivos as $descuento) {
+            // Verificar que no dejemos el neto en negativo
+            if ($netoDisponible <= 0) {
+                break;
+            }
+
+            // Aplicar el descuento
+            $montoAplicado = $descuento->aplicarDescuento($netoDisponible, $this->id);
+            
+            if ($montoAplicado) {
+                $netoDisponible -= $montoAplicado;
+                $totalDescuentosAplicados += $montoAplicado;
+            }
+        }
+
+        return $totalDescuentosAplicados;
+    }
+
+    /**
+     * Computed: total pay with discounts = total_pay - discounts.
+     */
+    public function getNetPayAttribute(): float
+    {
+        $totalDescuentos = $this->discountApplications()->sum('monto_aplicado');
+        return round($this->total_pay - $totalDescuentos, 2);
+    }
+
     public function getEntityType()
     {
         return self::class;

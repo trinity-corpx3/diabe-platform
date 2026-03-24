@@ -17,7 +17,7 @@
 
 La migración agregará las columnas necesarias para soportar parcialidades en facturas:
 - `installment_count` - Número de parcialidades
-- `installment_period` - Período (mensual, quincenal, etc.)
+- `installment_period` - Período (mensual, quincenal, etc.)es
 - `installment_schedule` - JSON con el calendario de parcialidades
 
 **Comando a ejecutar:**
