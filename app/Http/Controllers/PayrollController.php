@@ -216,25 +216,17 @@ class PayrollController extends BaseController
 
         $entry = PayrollEntry::where('company_id', $company->id)->findOrFail($id);
 
-        try {
-            $request->validate([
-                'worker_name' => 'sometimes|string|max:255',
-                'date' => 'sometimes|date',
-                'base_weekly_wage' => 'nullable|numeric|min:0',
-                'daily_wage' => 'nullable|numeric|min:0',
-                'overtime_hours' => 'nullable|numeric|min:0',
-                'overtime_rate' => 'nullable|numeric|min:0',
-                'days_worked' => 'nullable|integer|min:0|max:7',
-                'project_id' => 'nullable|string',
-                'notes' => 'nullable|string|max:500',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Payroll update validation failed', [
-                'errors' => $e->errors(),
-                'input' => $request->all(),
-            ]);
-            throw $e;
-        }
+        $request->validate([
+            'worker_name' => 'sometimes|string|max:255',
+            'date' => 'sometimes|date',
+            'base_weekly_wage' => 'nullable|numeric|min:0',
+            'daily_wage' => 'nullable|numeric|min:0',
+            'overtime_hours' => 'nullable|numeric|min:0',
+            'overtime_rate' => 'nullable|numeric|min:0',
+            'days_worked' => 'nullable|integer|min:0|max:7',
+            'project_id' => 'nullable', // Accept both string and integer
+            'notes' => 'nullable|string|max:500',
+        ]);
 
         $fillable = $request->only([
             'worker_name',
@@ -249,7 +241,12 @@ class PayrollController extends BaseController
         ]);
 
         if (isset($fillable['project_id']) && $fillable['project_id']) {
-            $fillable['project_id'] = $this->decodePrimaryKey($fillable['project_id']);
+            // If it's already an integer, use it directly; otherwise decode the hash
+            if (is_numeric($fillable['project_id'])) {
+                $fillable['project_id'] = (int) $fillable['project_id'];
+            } else {
+                $fillable['project_id'] = $this->decodePrimaryKey($fillable['project_id']);
+            }
         }
 
         // Recalculate base if daily_wage or days_worked changes
