@@ -12,8 +12,6 @@ class EmployeeDiscountController extends Controller
 {
     public function index($employeeId)
     {
-        $this->authorize('viewAny', EmployeeDiscount::class);
-
         $discounts = EmployeeDiscount::forEmployee($employeeId)
             ->with(['applications', 'creator'])
             ->orderBy('estado', 'asc')
@@ -25,8 +23,6 @@ class EmployeeDiscountController extends Controller
 
     public function store(Request $request, $employeeId)
     {
-        $this->authorize('create', EmployeeDiscount::class);
-
         $validated = $request->validate([
             'descripcion' => 'required|string|min:3|max:255',
             'monto_total' => 'required|numeric|min:0.01',
@@ -61,8 +57,6 @@ class EmployeeDiscountController extends Controller
 
     public function update(Request $request, $employeeId, $discountId)
     {
-        $this->authorize('update', EmployeeDiscount::class);
-
         $discount = EmployeeDiscount::forEmployee($employeeId)->findOrFail($discountId);
 
         $validated = $request->validate([
@@ -86,8 +80,6 @@ class EmployeeDiscountController extends Controller
 
     public function destroy($employeeId, $discountId)
     {
-        $this->authorize('delete', EmployeeDiscount::class);
-
         $discount = EmployeeDiscount::forEmployee($employeeId)->findOrFail($discountId);
 
         // Si tiene aplicaciones, no permitir eliminación física
@@ -104,8 +96,6 @@ class EmployeeDiscountController extends Controller
 
     public function summary(Request $request)
     {
-        $this->authorize('viewAny', EmployeeDiscount::class);
-
         $week = $request->query('week'); // Formato: YYYY-WXX
 
         // Obtener todos los descuentos activos
@@ -124,8 +114,6 @@ class EmployeeDiscountController extends Controller
 
     public function pendingBalance($employeeId)
     {
-        $this->authorize('viewAny', EmployeeDiscount::class);
-
         $discounts = EmployeeDiscount::forEmployee($employeeId)
             ->where('estado', 'activo')
             ->where('saldo_restante', '>', 0)
