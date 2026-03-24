@@ -492,6 +492,14 @@ Route::group(['middleware' => ['throttle:api', 'token_auth', 'valid_json', 'loca
     Route::put('payroll/{id}', [\App\Http\Controllers\PayrollController::class, 'update'])->name('payroll.update');
     Route::delete('payroll/{id}', [\App\Http\Controllers\PayrollController::class, 'destroy'])->name('payroll.destroy');
 
+    // === Employee Discounts Routes ===
+    Route::get('employees/{employeeId}/discounts', [\App\Http\Controllers\EmployeeDiscountController::class, 'index']);
+    Route::post('employees/{employeeId}/discounts', [\App\Http\Controllers\EmployeeDiscountController::class, 'store']);
+    Route::patch('employees/{employeeId}/discounts/{discountId}', [\App\Http\Controllers\EmployeeDiscountController::class, 'update']);
+    Route::delete('employees/{employeeId}/discounts/{discountId}', [\App\Http\Controllers\EmployeeDiscountController::class, 'destroy']);
+    Route::get('employees/{employeeId}/discounts/pending-balance', [\App\Http\Controllers\EmployeeDiscountController::class, 'pendingBalance']);
+    Route::get('payroll/discounts/summary', [\App\Http\Controllers\EmployeeDiscountController::class, 'summary']);
+
 });
 
 Route::post('api/v1/sms_reset', [TwilioController::class, 'generate2faResetCode'])->name('sms_reset.generate')->middleware('throttle:daily-verify');
@@ -530,14 +538,6 @@ Route::post('api/v1/ppcp/webhook', [PayPalPPCPPaymentDriver::class, 'processWebh
 
 Route::get('quickbooks/authorize/{token}', [ImportQuickbooksController::class, 'authorizeQuickbooks'])->name('quickbooks.authorize');
 Route::get('quickbooks/authorized', [ImportQuickbooksController::class, 'onAuthorized'])->name('quickbooks.authorized');
-
-// Employee Discounts Routes
-Route::get('api/v1/employees/{employeeId}/discounts', [EmployeeDiscountController::class, 'index']);
-Route::post('api/v1/employees/{employeeId}/discounts', [EmployeeDiscountController::class, 'store']);
-Route::patch('api/v1/employees/{employeeId}/discounts/{discountId}', [EmployeeDiscountController::class, 'update']);
-Route::delete('api/v1/employees/{employeeId}/discounts/{discountId}', [EmployeeDiscountController::class, 'destroy']);
-Route::get('api/v1/employees/{employeeId}/discounts/pending-balance', [EmployeeDiscountController::class, 'pendingBalance']);
-Route::get('api/v1/payroll/discounts/summary', [EmployeeDiscountController::class, 'summary']);
 
 Route::fallback([BaseController::class, 'notFound'])->middleware('throttle:404');
 
