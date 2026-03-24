@@ -101,6 +101,7 @@ class PayrollController extends BaseController
 
             $byWeek[$weekKey]['projects'][$projectId]['workers'][] = [
                 'id' => $entry->id,
+                'user_id' => $entry->user_id,
                 'worker_name' => $entry->worker_name,
                 'daily_wage' => (float) ($entry->daily_wage ?? 0),
                 'base_weekly_wage' => $baseWage,
