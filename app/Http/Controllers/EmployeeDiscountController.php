@@ -25,29 +25,21 @@ class EmployeeDiscountController extends Controller
     {
         $validated = $request->validate([
             'descripcion' => 'required|string|min:3|max:255',
-            'monto_total' => 'required|numeric|min:0.01',
             'descuento_semanal' => 'required|numeric|min:0.01',
-            'fecha_inicio' => 'required|date',
+            'fecha_inicio' => 'nullable|date',
             'notas' => 'nullable|string|max:1000',
         ]);
-
-        // Validar que descuento_semanal no sea mayor que monto_total
-        if ($validated['descuento_semanal'] > $validated['monto_total']) {
-            return response()->json([
-                'message' => 'El descuento semanal no puede ser mayor que el monto total',
-            ], 422);
-        }
 
         // Validar que el empleado existe
         $employee = User::findOrFail($employeeId);
 
-        // Crear el descuento
+        // Crear el descuento (monto_total = descuento_semanal para descuentos únicos)
         $discount = EmployeeDiscount::create([
             'employee_id' => $employeeId,
             'descripcion' => $validated['descripcion'],
-            'monto_total' => $validated['monto_total'],
+            'monto_total' => $validated['descuento_semanal'],
             'descuento_semanal' => $validated['descuento_semanal'],
-            'fecha_inicio' => $validated['fecha_inicio'],
+            'fecha_inicio' => $validated['fecha_inicio'] ?? now()->format('Y-m-d'),
             'notas' => $validated['notas'] ?? null,
             'created_by' => Auth::id(),
         ]);
