@@ -68,6 +68,11 @@ class EmployeeDiscountController extends Controller
             ], 422);
         }
 
+        // Si se actualiza descuento_semanal, también actualizar monto_total
+        if (isset($validated['descuento_semanal'])) {
+            $validated['monto_total'] = $validated['descuento_semanal'];
+        }
+
         $discount->update($validated);
 
         return response()->json($discount->load(['applications', 'creator']));
