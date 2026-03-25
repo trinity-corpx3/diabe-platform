@@ -201,13 +201,9 @@ class PayrollController extends BaseController
             'attended' => true,
         ]);
 
-        // Aplicar descuentos activos del empleado automáticamente
-        $totalDescuentos = $entry->aplicarDescuentos();
-
         return response()->json([
             'data' => $entry->fresh(), // Recargar para obtener net_pay actualizado
             'message' => 'Registro de nómina creado exitosamente.',
-            'descuentos_aplicados' => $totalDescuentos,
         ], 201);
     }
 
