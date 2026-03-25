@@ -16,12 +16,22 @@ return new class extends Migration
             $table->unsignedBigInteger('employee_id')->nullable()->change();
         });
         
-        // Copiar datos: convertir employee_id a worker_name desde payroll_entries
+        // Copiar worker_name desde payroll_entries que ya tienen descuentos aplicados
+        DB::statement("
+            UPDATE employee_discounts ed
+            INNER JOIN payroll_discount_applications pda ON ed.id = pda.discount_id
+            INNER JOIN payroll_entries pe ON pda.payroll_week_id = pe.id
+            SET ed.worker_name = pe.worker_name
+            WHERE ed.worker_name IS NULL
+            LIMIT 1
+        ");
+        
+        // Para descuentos sin aplicaciones, usar el nombre del empleado de la tabla users
         DB::statement("
             UPDATE employee_discounts ed
             LEFT JOIN users u ON ed.employee_id = u.id
             SET ed.worker_name = CONCAT(u.first_name, ' ', u.last_name)
-            WHERE ed.employee_id IS NOT NULL
+            WHERE ed.worker_name IS NULL AND ed.employee_id IS NOT NULL
         ");
     }
 
