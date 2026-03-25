@@ -13,6 +13,7 @@ class EmployeeDiscount extends Model
 
     protected $fillable = [
         'employee_id',
+        'worker_name',
         'descripcion',
         'monto_total',
         'descuento_semanal',

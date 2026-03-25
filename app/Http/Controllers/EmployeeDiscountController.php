@@ -39,6 +39,7 @@ class EmployeeDiscountController extends Controller
         // Crear el descuento (monto_total = descuento_semanal para descuentos únicos)
         $discount = EmployeeDiscount::create([
             'employee_id' => $employeeId,
+            'worker_name' => trim($employee->first_name . ' ' . $employee->last_name),
             'descripcion' => $validated['descripcion'],
             'monto_total' => $validated['descuento_semanal'],
             'descuento_semanal' => $validated['descuento_semanal'],

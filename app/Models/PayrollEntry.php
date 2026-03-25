@@ -105,16 +105,8 @@ class PayrollEntry extends BaseModel
             return 0;
         }
 
-        // Buscar el empleado por nombre del trabajador
-        $empleado = User::whereRaw('LOWER(TRIM(CONCAT(first_name, " ", last_name))) = ?', [strtolower(trim($this->worker_name))])
-            ->first();
-
-        if (!$empleado) {
-            return 0;
-        }
-
-        // Obtener descuentos activos
-        $descuentosActivos = EmployeeDiscount::where('employee_id', $empleado->id)
+        // Buscar descuentos activos por nombre del trabajador
+        $descuentosActivos = EmployeeDiscount::whereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower(trim($this->worker_name))])
             ->where('estado', 'activo')
             ->where('saldo_restante', '>', 0)
             ->orderBy('fecha_inicio', 'asc')
