@@ -44,7 +44,7 @@ class ApplyDiscountsToExistingPayroll extends Command
 
         try {
             // Obtener registros de nómina sin descuentos aplicados
-            $query = PayrollEntry::whereDoesntHave('discountApplications');
+            $query = PayrollEntry::whereDoesntHave('discounts');
 
             if ($week) {
                 $query->whereDate('date', $week);
@@ -64,7 +64,9 @@ class ApplyDiscountsToExistingPayroll extends Command
 
             foreach ($entries as $entry) {
                 if (!$dryRun) {
-                    $descuentos = $entry->aplicarDescuentos();
+                    // En el nuevo modelo, los descuentos se crean directamente vinculados al registro
+        // No hay método aplicarDescuentos() para aplicar descuentos automáticamente
+        $descuentos = 0;
                 } else {
                     // En dry-run, solo simular
                     $descuentos = 0;

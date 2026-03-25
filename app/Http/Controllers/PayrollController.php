@@ -100,7 +100,7 @@ class PayrollController extends BaseController
             $totalPay = round($baseWage + $overtimePay, 2);
 
             // Calcular descuentos aplicados
-            $totalDescuentos = $entry->discountApplications()->sum('monto_aplicado');
+            $totalDescuentos = $entry->discounts()->sum('monto');
             $netPay = round($totalPay - $totalDescuentos, 2);
 
             $byWeek[$weekKey]['projects'][$projectId]['workers'][] = [
@@ -289,13 +289,12 @@ class PayrollController extends BaseController
 
         $entry = PayrollEntry::where('company_id', $company->id)->findOrFail($id);
         
-        // Aplicar descuentos
-        $totalDescuentos = $entry->aplicarDescuentos();
-
+        // En el nuevo modelo, los descuentos se aplican directamente al crearlos
+        // No hay método aplicarDescuentos() ya que cada descuento está vinculado a un registro específico
+        
         return response()->json([
-            'message' => 'Descuentos aplicados correctamente.',
-            'total_descuentos' => $totalDescuentos,
-            'data' => $entry->fresh(['discountApplications']),
+            'message' => 'No se pueden aplicar descuentos automáticamente en el nuevo modelo. Los descuentos deben crearse directamente para cada registro de nómina.',
+            'data' => $entry->fresh(['discounts']),
         ]);
     }
 

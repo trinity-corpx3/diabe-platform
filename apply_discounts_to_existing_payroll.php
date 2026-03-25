@@ -20,7 +20,7 @@ DB::beginTransaction();
 
 try {
     // Obtener todos los registros de nómina que no tienen descuentos aplicados
-    $entries = PayrollEntry::whereDoesntHave('discountApplications')->get();
+    $entries = PayrollEntry::whereDoesntHave('discounts')->get();
     
     echo "📊 Encontrados " . $entries->count() . " registros sin descuentos aplicados\n\n";
     
@@ -30,7 +30,9 @@ try {
     foreach ($entries as $entry) {
         echo "Procesando: {$entry->worker_name} - Semana {$entry->date->format('Y-m-d')}... ";
         
-        $descuentos = $entry->aplicarDescuentos();
+        // En el nuevo modelo, los descuentos se crean directamente vinculados al registro
+        // No hay método aplicarDescuentos() para aplicar descuentos automáticamente
+        $descuentos = 0;
         
         if ($descuentos > 0) {
             echo "✅ Aplicados: $" . number_format($descuentos, 2) . "\n";
