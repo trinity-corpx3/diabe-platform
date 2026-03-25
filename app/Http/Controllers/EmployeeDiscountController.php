@@ -48,6 +48,16 @@ class EmployeeDiscountController extends Controller
             'created_by' => $user->id,
         ]);
 
+        // Aplicar el descuento a registros de nómina existentes del trabajador
+        $workerName = trim($employee->first_name . ' ' . $employee->last_name);
+        $payrollEntries = \App\Models\PayrollEntry::whereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower($workerName)])
+            ->whereDoesntHave('discountApplications')
+            ->get();
+
+        foreach ($payrollEntries as $entry) {
+            $entry->aplicarDescuentos();
+        }
+
         return response()->json($discount->load(['applications', 'creator']), 201);
     }
 
