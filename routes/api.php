@@ -490,6 +490,7 @@ Route::group(['middleware' => ['throttle:api', 'token_auth', 'valid_json', 'loca
     Route::get('payroll', [\App\Http\Controllers\PayrollController::class, 'index'])->name('payroll.index');
     Route::post('payroll', [\App\Http\Controllers\PayrollController::class, 'store'])->name('payroll.store');
     Route::put('payroll/{id}', [\App\Http\Controllers\PayrollController::class, 'update'])->name('payroll.update');
+    Route::post('payroll/{id}/apply-discounts', [\App\Http\Controllers\PayrollController::class, 'applyDiscounts'])->name('payroll.apply-discounts');
     Route::delete('payroll/{id}', [\App\Http\Controllers\PayrollController::class, 'destroy'])->name('payroll.destroy');
 
     // === Employee Discounts Routes ===

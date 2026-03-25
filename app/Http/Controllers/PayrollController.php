@@ -277,6 +277,29 @@ class PayrollController extends BaseController
     }
 
     /**
+     * POST /api/v1/payroll/{id}/apply-discounts
+     * 
+     * Apply active discounts to a specific payroll entry
+     */
+    public function applyDiscounts(int $id): JsonResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+        $company = $user->company();
+
+        $entry = PayrollEntry::where('company_id', $company->id)->findOrFail($id);
+        
+        // Aplicar descuentos
+        $totalDescuentos = $entry->aplicarDescuentos();
+
+        return response()->json([
+            'message' => 'Descuentos aplicados correctamente.',
+            'total_descuentos' => $totalDescuentos,
+            'data' => $entry->fresh(['discountApplications']),
+        ]);
+    }
+
+    /**
      * DELETE /api/v1/payroll/{id}
      */
     public function destroy(int $id): JsonResponse
