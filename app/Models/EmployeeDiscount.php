@@ -80,6 +80,18 @@ class EmployeeDiscount extends Model
 
     public function scopeForEmployee($query, $employeeId)
     {
+        // Buscar por employee_id O por worker_name
+        // Primero intentar obtener el nombre del empleado
+        $employee = \App\Models\User::find($employeeId);
+        
+        if ($employee) {
+            $workerName = trim($employee->first_name . ' ' . $employee->last_name);
+            return $query->where(function($q) use ($employeeId, $workerName) {
+                $q->where('employee_id', $employeeId)
+                  ->orWhereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower($workerName)]);
+            });
+        }
+        
         return $query->where('employee_id', $employeeId);
     }
 
