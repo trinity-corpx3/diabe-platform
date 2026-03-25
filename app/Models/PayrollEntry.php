@@ -106,15 +106,14 @@ class PayrollEntry extends BaseModel
         }
 
         // Buscar el empleado por nombre del trabajador
-        $empleado = User::where('company_id', $this->company_id)
-            ->whereRaw('LOWER(TRIM(CONCAT(first_name, " ", last_name))) = ?', [strtolower(trim($this->worker_name))])
+        $empleado = User::whereRaw('LOWER(TRIM(CONCAT(first_name, " ", last_name))) = ?', [strtolower(trim($this->worker_name))])
             ->first();
 
         if (!$empleado) {
             return 0;
         }
 
-        // Obtener descuentos activos ordenados por fecha de inicio
+        // Obtener descuentos activos
         $descuentosActivos = EmployeeDiscount::where('employee_id', $empleado->id)
             ->where('estado', 'activo')
             ->where('saldo_restante', '>', 0)
@@ -125,17 +124,14 @@ class PayrollEntry extends BaseModel
             return 0;
         }
 
-        // Calcular neto disponible (total_pay - IMSS - ISR - otros descuentos ya aplicados)
         $netoDisponible = $this->total_pay;
         $totalDescuentosAplicados = 0;
 
         foreach ($descuentosActivos as $descuento) {
-            // Verificar que no dejemos el neto en negativo
             if ($netoDisponible <= 0) {
                 break;
             }
 
-            // Aplicar el descuento
             $montoAplicado = $descuento->aplicarDescuento($netoDisponible, $this->id);
             
             if ($montoAplicado) {
