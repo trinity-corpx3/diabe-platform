@@ -494,10 +494,10 @@ Route::group(['middleware' => ['throttle:api', 'token_auth', 'valid_json', 'loca
     Route::delete('payroll/{id}', [\App\Http\Controllers\PayrollController::class, 'destroy'])->name('payroll.destroy');
 
     // === Employee Discounts Routes ===
-    Route::get('payroll/workers/{workerName}/discounts', [\App\Http\Controllers\EmployeeDiscountController::class, 'index']);
-    Route::post('payroll/workers/{workerName}/discounts', [\App\Http\Controllers\EmployeeDiscountController::class, 'store']);
-    Route::patch('payroll/workers/{workerName}/discounts/{discountId}', [\App\Http\Controllers\EmployeeDiscountController::class, 'update']);
-    Route::delete('payroll/workers/{workerName}/discounts/{discountId}', [\App\Http\Controllers\EmployeeDiscountController::class, 'destroy']);
+    Route::get('payroll/{payrollEntryId}/discounts', [\App\Http\Controllers\EmployeeDiscountController::class, 'index']);
+    Route::post('payroll/{payrollEntryId}/discounts', [\App\Http\Controllers\EmployeeDiscountController::class, 'store']);
+    Route::patch('payroll/{payrollEntryId}/discounts/{discountId}', [\App\Http\Controllers\EmployeeDiscountController::class, 'update']);
+    Route::delete('payroll/{payrollEntryId}/discounts/{discountId}', [\App\Http\Controllers\EmployeeDiscountController::class, 'destroy']);
 
 });
 

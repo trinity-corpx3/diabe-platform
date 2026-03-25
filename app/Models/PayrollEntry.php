@@ -89,50 +89,9 @@ class PayrollEntry extends BaseModel
         return $this->belongsTo(User::class)->withTrashed();
     }
 
-    public function discountApplications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function discounts(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(PayrollDiscountApplication::class, 'payroll_week_id');
-    }
-
-    /**
-     * Aplicar descuentos activos del empleado a esta nómina semanal.
-     * Retorna el monto total de descuentos aplicados.
-     */
-    public function aplicarDescuentos(): float
-    {
-        // Verificar si ya tiene descuentos aplicados
-        if ($this->discountApplications()->exists()) {
-            return 0;
-        }
-
-        // Buscar descuentos activos por nombre del trabajador
-        $descuentosActivos = EmployeeDiscount::whereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower(trim($this->worker_name))])
-            ->where('estado', 'activo')
-            ->where('saldo_restante', '>', 0)
-            ->orderBy('fecha_inicio', 'asc')
-            ->get();
-
-        if ($descuentosActivos->isEmpty()) {
-            return 0;
-        }
-
-        $netoDisponible = $this->total_pay;
-        $totalDescuentosAplicados = 0;
-
-        foreach ($descuentosActivos as $descuento) {
-            if ($netoDisponible <= 0) {
-                break;
-            }
-
-            $montoAplicado = $descuento->aplicarDescuento($netoDisponible, $this->id);
-            
-            if ($montoAplicado) {
-                $netoDisponible -= $montoAplicado;
-                $totalDescuentosAplicados += $montoAplicado;
-            }
-        }
-
-        return $totalDescuentosAplicados;
+        return $this->hasMany(EmployeeDiscount::class, 'payroll_entry_id');
     }
 
     /**
@@ -140,7 +99,7 @@ class PayrollEntry extends BaseModel
      */
     public function getNetPayAttribute(): float
     {
-        $totalDescuentos = $this->discountApplications()->sum('monto_aplicado');
+        $totalDescuentos = $this->discounts()->sum('monto');
         return round($this->total_pay - $totalDescuentos, 2);
     }
 

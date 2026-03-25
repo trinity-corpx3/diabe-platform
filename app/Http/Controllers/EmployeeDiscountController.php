@@ -10,108 +10,67 @@ use Illuminate\Support\Facades\DB;
 
 class EmployeeDiscountController extends Controller
 {
-    public function index($workerName)
+    public function index($payrollEntryId)
     {
-        // Decodificar el nombre del trabajador (viene URL encoded)
-        $workerName = urldecode($workerName);
-        
-        $discounts = EmployeeDiscount::whereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower(trim($workerName))])
-            ->with(['applications', 'creator'])
-            ->orderBy('estado', 'asc')
-            ->orderBy('fecha_inicio', 'desc')
+        $discounts = EmployeeDiscount::forPayrollEntry($payrollEntryId)
+            ->with(['creator', 'payrollEntry'])
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json($discounts);
     }
 
-    public function store(Request $request, $workerName)
+    public function store(Request $request, $payrollEntryId)
     {
-        // Decodificar el nombre del trabajador (viene URL encoded)
-        $workerName = urldecode($workerName);
-        
         $validated = $request->validate([
             'descripcion' => 'required|string|min:3|max:255',
-            'descuento_semanal' => 'required|numeric|min:0.01',
-            'fecha_inicio' => 'nullable|date',
+            'monto' => 'required|numeric|min:0.01',
             'notas' => 'nullable|string|max:1000',
         ]);
+
+        // Verificar que el registro de nómina existe
+        $payrollEntry = \App\Models\PayrollEntry::findOrFail($payrollEntryId);
 
         /** @var \App\Models\User $user */
         $user = auth()->user();
 
-        // Crear el descuento usando worker_name directamente
+        // Crear el descuento vinculado al registro específico
         $discount = EmployeeDiscount::create([
-            'worker_name' => trim($workerName),
+            'payroll_entry_id' => $payrollEntryId,
+            'worker_name' => $payrollEntry->worker_name,
             'descripcion' => $validated['descripcion'],
-            'monto_total' => $validated['descuento_semanal'],
-            'descuento_semanal' => $validated['descuento_semanal'],
-            'fecha_inicio' => $validated['fecha_inicio'] ?? now()->format('Y-m-d'),
+            'monto' => $validated['monto'],
             'notas' => $validated['notas'] ?? null,
             'created_by' => $user->id,
         ]);
 
-        // Aplicar el descuento a registros de nómina existentes del trabajador
-        $payrollEntries = \App\Models\PayrollEntry::whereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower(trim($workerName))])
-            ->whereDoesntHave('discountApplications')
-            ->get();
-
-        foreach ($payrollEntries as $entry) {
-            $entry->aplicarDescuentos();
-        }
-
-        return response()->json($discount->load(['applications', 'creator']), 201);
+        return response()->json($discount->load(['creator', 'payrollEntry']), 201);
     }
 
-    public function update(Request $request, $workerName, $discountId)
+    public function update(Request $request, $payrollEntryId, $discountId)
     {
-        // Decodificar el nombre del trabajador
-        $workerName = urldecode($workerName);
-        
-        $discount = EmployeeDiscount::whereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower(trim($workerName))])
+        $discount = EmployeeDiscount::forPayrollEntry($payrollEntryId)
             ->findOrFail($discountId);
 
         $validated = $request->validate([
             'descripcion' => 'sometimes|string|min:3|max:255',
-            'descuento_semanal' => 'sometimes|numeric|min:0.01',
-            'estado' => 'sometimes|in:activo,pausado,liquidado,cancelado',
+            'monto' => 'sometimes|numeric|min:0.01',
             'notas' => 'nullable|string|max:1000',
         ]);
 
-        // No permitir modificar descuento_semanal si ya tiene aplicaciones
-        if (isset($validated['descuento_semanal']) && $discount->applications()->count() > 0) {
-            return response()->json([
-                'message' => 'No se puede modificar el descuento semanal porque ya tiene aplicaciones registradas',
-            ], 422);
-        }
-
-        // Si se actualiza descuento_semanal, también actualizar monto_total
-        if (isset($validated['descuento_semanal'])) {
-            $validated['monto_total'] = $validated['descuento_semanal'];
-        }
-
         $discount->update($validated);
 
-        return response()->json($discount->load(['applications', 'creator']));
+        return response()->json($discount->load(['creator', 'payrollEntry']));
     }
 
-    public function destroy($workerName, $discountId)
+    public function destroy($payrollEntryId, $discountId)
     {
-        // Decodificar el nombre del trabajador
-        $workerName = urldecode($workerName);
-        
-        $discount = EmployeeDiscount::whereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower(trim($workerName))])
+        $discount = EmployeeDiscount::forPayrollEntry($payrollEntryId)
             ->findOrFail($discountId);
-
-        // Si tiene aplicaciones, no permitir eliminación física
-        if ($discount->applications()->count() > 0) {
-            return response()->json([
-                'message' => 'No se puede eliminar este descuento porque ya tiene aplicaciones registradas. Considere pausarlo en su lugar.',
-            ], 409);
-        }
 
         $discount->delete();
 
-        return response()->json(['message' => 'Descuento eliminado correctamente'], 200);
+        return response()->json(null, 204);
     }
 
     public function summary(Request $request)
