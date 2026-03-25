@@ -99,6 +99,10 @@ class PayrollController extends BaseController
             $overtimePay = round($overtimeHours * $overtimeRate, 2);
             $totalPay = round($baseWage + $overtimePay, 2);
 
+            // Calcular descuentos aplicados
+            $totalDescuentos = $entry->discountApplications()->sum('monto_aplicado');
+            $netPay = round($totalPay - $totalDescuentos, 2);
+
             $byWeek[$weekKey]['projects'][$projectId]['workers'][] = [
                 'id' => $entry->id,
                 'user_id' => $entry->user_id,
@@ -109,6 +113,8 @@ class PayrollController extends BaseController
                 'overtime_rate' => $overtimeRate,
                 'overtime_pay' => $overtimePay,
                 'total_pay' => $totalPay,
+                'total_discounts' => $totalDescuentos,
+                'net_pay' => $netPay,
                 'days_worked' => (int) ($entry->days_worked ?? 6),
                 'notes' => $entry->notes ?? '',
             ];
