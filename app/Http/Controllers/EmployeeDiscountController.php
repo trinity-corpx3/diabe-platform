@@ -10,9 +10,12 @@ use Illuminate\Support\Facades\DB;
 
 class EmployeeDiscountController extends Controller
 {
-    public function index($employeeId)
+    public function index($workerName)
     {
-        $discounts = EmployeeDiscount::forEmployee($employeeId)
+        // Decodificar el nombre del trabajador (viene URL encoded)
+        $workerName = urldecode($workerName);
+        
+        $discounts = EmployeeDiscount::whereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower(trim($workerName))])
             ->with(['applications', 'creator'])
             ->orderBy('estado', 'asc')
             ->orderBy('fecha_inicio', 'desc')
@@ -21,8 +24,11 @@ class EmployeeDiscountController extends Controller
         return response()->json($discounts);
     }
 
-    public function store(Request $request, $employeeId)
+    public function store(Request $request, $workerName)
     {
+        // Decodificar el nombre del trabajador (viene URL encoded)
+        $workerName = urldecode($workerName);
+        
         $validated = $request->validate([
             'descripcion' => 'required|string|min:3|max:255',
             'descuento_semanal' => 'required|numeric|min:0.01',
@@ -30,16 +36,12 @@ class EmployeeDiscountController extends Controller
             'notas' => 'nullable|string|max:1000',
         ]);
 
-        // Validar que el empleado existe
-        $employee = User::findOrFail($employeeId);
-
         /** @var \App\Models\User $user */
         $user = auth()->user();
 
-        // Crear el descuento (monto_total = descuento_semanal para descuentos únicos)
+        // Crear el descuento usando worker_name directamente
         $discount = EmployeeDiscount::create([
-            'employee_id' => $employeeId,
-            'worker_name' => trim($employee->first_name . ' ' . $employee->last_name),
+            'worker_name' => trim($workerName),
             'descripcion' => $validated['descripcion'],
             'monto_total' => $validated['descuento_semanal'],
             'descuento_semanal' => $validated['descuento_semanal'],
@@ -49,8 +51,7 @@ class EmployeeDiscountController extends Controller
         ]);
 
         // Aplicar el descuento a registros de nómina existentes del trabajador
-        $workerName = trim($employee->first_name . ' ' . $employee->last_name);
-        $payrollEntries = \App\Models\PayrollEntry::whereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower($workerName)])
+        $payrollEntries = \App\Models\PayrollEntry::whereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower(trim($workerName))])
             ->whereDoesntHave('discountApplications')
             ->get();
 
@@ -61,9 +62,13 @@ class EmployeeDiscountController extends Controller
         return response()->json($discount->load(['applications', 'creator']), 201);
     }
 
-    public function update(Request $request, $employeeId, $discountId)
+    public function update(Request $request, $workerName, $discountId)
     {
-        $discount = EmployeeDiscount::forEmployee($employeeId)->findOrFail($discountId);
+        // Decodificar el nombre del trabajador
+        $workerName = urldecode($workerName);
+        
+        $discount = EmployeeDiscount::whereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower(trim($workerName))])
+            ->findOrFail($discountId);
 
         $validated = $request->validate([
             'descripcion' => 'sometimes|string|min:3|max:255',
@@ -89,9 +94,13 @@ class EmployeeDiscountController extends Controller
         return response()->json($discount->load(['applications', 'creator']));
     }
 
-    public function destroy($employeeId, $discountId)
+    public function destroy($workerName, $discountId)
     {
-        $discount = EmployeeDiscount::forEmployee($employeeId)->findOrFail($discountId);
+        // Decodificar el nombre del trabajador
+        $workerName = urldecode($workerName);
+        
+        $discount = EmployeeDiscount::whereRaw('LOWER(TRIM(worker_name)) = ?', [strtolower(trim($workerName))])
+            ->findOrFail($discountId);
 
         // Si tiene aplicaciones, no permitir eliminación física
         if ($discount->applications()->count() > 0) {
