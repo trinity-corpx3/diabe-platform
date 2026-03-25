@@ -100,7 +100,16 @@ class PayrollEntry extends BaseModel
      */
     public function aplicarDescuentos(): float
     {
-        $empleado = $this->user;
+        // Verificar si ya tiene descuentos aplicados
+        if ($this->discountApplications()->exists()) {
+            return 0;
+        }
+
+        // Buscar el empleado por nombre del trabajador
+        $empleado = User::where('company_id', $this->company_id)
+            ->whereRaw('LOWER(TRIM(CONCAT(first_name, " ", last_name))) = ?', [strtolower(trim($this->worker_name))])
+            ->first();
+
         if (!$empleado) {
             return 0;
         }
