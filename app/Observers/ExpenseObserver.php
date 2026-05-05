@@ -14,6 +14,7 @@ namespace App\Observers;
 
 use App\Jobs\Util\WebhookHandler;
 use App\Models\Expense;
+use App\Models\PurchaseOrder;
 use App\Models\Webhook;
 
 class ExpenseObserver
@@ -35,6 +36,8 @@ class ExpenseObserver
         if ($subscriptions) {
             WebhookHandler::dispatch(Webhook::EVENT_CREATE_EXPENSE, $expense, $expense->company)->delay(0);
         }
+
+        $this->updatePurchaseOrderBalance($expense);
     }
 
     /**
@@ -63,6 +66,8 @@ class ExpenseObserver
         if ($subscriptions) {
             WebhookHandler::dispatch($event, $expense, $expense->company)->delay(0);
         }
+
+        $this->updatePurchaseOrderBalance($expense);
     }
 
     /**
@@ -84,6 +89,8 @@ class ExpenseObserver
         if ($subscriptions) {
             WebhookHandler::dispatch(Webhook::EVENT_ARCHIVE_EXPENSE, $expense, $expense->company)->delay(0);
         }
+
+        $this->updatePurchaseOrderBalance($expense);
     }
 
     /**
@@ -113,4 +120,3 @@ class ExpenseObserver
      * @param Expense $expense
      * @return void
      */
-}

@@ -70,18 +70,6 @@ class ExpenseRepository extends BaseRepository
             $this->saveDocuments($data['documents'], $expense);
         }
 
-        if ($this->notify_vendor) {
-            VendorExpenseNotify::dispatch($expense, $expense->company->db);
-        }
-
-        if ($payment_date && strlen($payment_date) > 1 && $expense->purchase_order) {
-            $purchase_order = $expense->purchase_order;
-            $purchase_order->balance = round($purchase_order->amount - $expense->amount, 2);
-            $purchase_order->paid_to_date = $expense->amount;
-            $purchase_order->save();
-        }
-
-        return $expense;
     }
 
     /**

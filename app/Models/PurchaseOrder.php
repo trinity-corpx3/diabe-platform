@@ -320,10 +320,6 @@ class PurchaseOrder extends BaseModel
         return $this->belongsTo(Company::class);
     }
 
-    public function expense(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(Expense::class)->withTrashed();
-    }
 
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
