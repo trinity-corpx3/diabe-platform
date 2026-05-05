@@ -114,9 +114,26 @@ class ExpenseObserver
     {
         //
     }
+
     /**
-     * Handle the expense "archive" event.
-     *
-     * @param Expense $expense
-     * @return void
+     * Updates the balance of the associated Purchase Order by summing all paid expenses.
      */
+    private function updatePurchaseOrderBalance(Expense $expense): void
+    {
+        if ($expense->purchase_order_id) {
+            $purchaseOrder = PurchaseOrder::find($expense->purchase_order_id);
+            if ($purchaseOrder) {
+                // Sum all expenses for this PO that have a payment_date and are not deleted
+                $totalPaid = Expense::where('purchase_order_id', $purchaseOrder->id)
+                    ->whereNotNull('payment_date')
+                    ->whereNull('deleted_at')
+                    ->where('is_deleted', 0)
+                    ->sum('amount');
+
+                $purchaseOrder->paid_to_date = (float) $totalPaid;
+                $purchaseOrder->balance = round($purchaseOrder->amount - $totalPaid, 2);
+                $purchaseOrder->saveQuietly();
+            }
+        }
+    }
+}
