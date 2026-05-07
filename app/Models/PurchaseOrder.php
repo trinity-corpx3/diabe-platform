@@ -205,6 +205,7 @@ class PurchaseOrder extends BaseModel
         'last_viewed',
         'currency_id',
         'location_id',
+        'expense_id',
     ];
 
     protected $casts = [
@@ -364,6 +365,11 @@ class PurchaseOrder extends BaseModel
     public function invoice(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    public function expense(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Expense::class);
     }
 
     /** @return PurchaseOrderService  */
