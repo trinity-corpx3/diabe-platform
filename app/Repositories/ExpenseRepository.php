@@ -63,13 +63,14 @@ class ExpenseRepository extends BaseRepository
         if (empty($expense->number)) {
             $expense = $this->findAndSaveNumber($expense);
         } else {
-            $expense->saveQuietly();
+            $expense->save();
         }
 
         if (array_key_exists('documents', $data)) {
             $this->saveDocuments($data['documents'], $expense);
         }
 
+        return $expense;
     }
 
     /**
@@ -159,7 +160,7 @@ class ExpenseRepository extends BaseRepository
         do {
             try {
                 $expense->number = $this->getNextExpenseNumber($expense);
-                $expense->saveQuietly();
+                $expense->save();
 
                 $this->completed = false;
             } catch (QueryException $e) {
