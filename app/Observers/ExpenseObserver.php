@@ -124,7 +124,9 @@ class ExpenseObserver
             $purchaseOrder = PurchaseOrder::find($expense->purchase_order_id);
             if ($purchaseOrder) {
                 // Sum all expenses for this PO that have a payment_date and are not deleted
-                $totalPaid = Expense::where('purchase_order_id', $purchaseOrder->id)
+                $totalPaid = \DB::table('expenses')
+                    ->where('purchase_order_id', $purchaseOrder->id)
+                    ->where('payment_date', '!=', '')
                     ->whereNotNull('payment_date')
                     ->whereNull('deleted_at')
                     ->where('is_deleted', 0)
