@@ -18,6 +18,7 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Invoice;
 use App\Models\Project;
+use App\Models\PurchaseOrder;
 use App\Models\Vendor;
 use App\Utils\Traits\MakesHash;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -44,6 +45,7 @@ class ExpenseTransformer extends EntityTransformer
         'category',
         'invoice',
         'project',
+        'purchase_order',
     ];
 
     public function includeDocuments(Expense $expense)
@@ -108,6 +110,17 @@ class ExpenseTransformer extends EntityTransformer
         return $this->includeItem($expense->vendor, $transformer, Vendor::class);
     }
 
+    public function includePurchaseOrder(Expense $expense): ?Item
+    {
+        $transformer = new PurchaseOrderTransformer($this->serializer);
+
+        if (!$expense->purchase_order) {
+            return null;
+        }
+
+        return $this->includeItem($expense->purchase_order, $transformer, PurchaseOrder::class);
+    }
+
     /**
      * @param Expense $expense
      *
@@ -165,6 +178,7 @@ class ExpenseTransformer extends EntityTransformer
             'e_invoice' => $expense->e_invoice ?: new \stdClass(),
 
             'office_expense_id' => $this->encodePrimaryKey($expense->office_expense_id),
+            'purchase_order_id' => $this->encodePrimaryKey($expense->purchase_order_id),
         ];
     }
 }
