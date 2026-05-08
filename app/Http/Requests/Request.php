@@ -159,6 +159,10 @@ class Request extends FormRequest
             $input['category_id'] = $this->decodePrimaryKey($input['category_id']);
         }
 
+        if (array_key_exists('purchase_order_id', $input) && is_string($input['purchase_order_id'])) {
+            $input['purchase_order_id'] = $this->decodePrimaryKey($input['purchase_order_id']);
+        }
+
         if (isset($input['client_contacts'])) {
             foreach ($input['client_contacts'] as $key => $contact) {
                 if (! array_key_exists('send_email', $contact) || ! array_key_exists('id', $contact)) {
