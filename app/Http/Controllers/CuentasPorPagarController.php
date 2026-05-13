@@ -5,6 +5,10 @@
  *
  * Returns expenses grouped by vendor that have NOT been paid yet,
  * with aging classification (green/yellow/red) based on days since creation.
+ *
+ * PO balances without associated unpaid expenses are returned in a separate
+ * `saldo_contrato` bucket per vendor (they represent committed contract amounts
+ * not yet invoiced, not actual overdue debt).
  */
 
 namespace App\Http\Controllers;
@@ -20,7 +24,8 @@ class CuentasPorPagarController extends BaseController
     /**
      * GET /api/v1/cuentas-por-pagar
      *
-     * Returns all unpaid expenses grouped by vendor with aging info.
+     * Returns all unpaid expenses grouped by vendor with aging info,
+     * plus contract balance (saldo de OC) as a separate bucket.
      */
     public function index(Request $request): JsonResponse
     {
@@ -47,6 +52,7 @@ class CuentasPorPagarController extends BaseController
 
         $vendorGroups = [];
         $grandTotal = 0.0;
+        $saldoContratoGrandTotal = 0.0;
         $today = now();
 
         foreach ($expenses as $expense) {
@@ -54,13 +60,7 @@ class CuentasPorPagarController extends BaseController
             $vendorName = $expense->vendor ? $expense->vendor->name : 'Sin Proveedor';
 
             if (!isset($vendorGroups[$vendorId])) {
-                $vendorGroups[$vendorId] = [
-                    'vendor_id' => $vendorId,
-                    'vendor_name' => $vendorName,
-                    'total' => 0.0,
-                    'count' => 0,
-                    'expenses' => [],
-                ];
+                $vendorGroups[$vendorId] = $this->makeVendorGroup($vendorId, $vendorName);
             }
 
             $expenseDate = $expense->date ? \Carbon\Carbon::parse($expense->date) : $today;
@@ -100,12 +100,13 @@ class CuentasPorPagarController extends BaseController
             $grandTotal += $amount;
         }
 
-        // Process Purchase Orders (remaining balance not yet in expenses)
+        // Process Purchase Orders — remaining contract balance (not yet invoiced)
+        // goes into a separate `saldo_contrato` bucket per vendor.
         foreach ($purchaseOrders as $po) {
             $vendorId = $po->vendor_id ?? 0;
             $vendorName = $po->vendor ? $po->vendor->name : 'Sin Proveedor';
 
-            // Calculate how much of this PO balance is ALREADY captured by unpaid expenses
+            // Subtract unpaid expenses already counted to avoid double counting
             $unpaidExpensesForPO = $expenses->where('purchase_order_id', $po->id)->sum('amount');
             $remainingPOBalance = max(0, (float) $po->balance - $unpaidExpensesForPO);
 
@@ -114,58 +115,46 @@ class CuentasPorPagarController extends BaseController
             }
 
             if (!isset($vendorGroups[$vendorId])) {
-                $vendorGroups[$vendorId] = [
-                    'vendor_id' => $vendorId,
-                    'vendor_name' => $vendorName,
-                    'total' => 0.0,
-                    'count' => 0,
-                    'expenses' => [],
-                ];
-            }
-
-            $poDate = $po->date ? \Carbon\Carbon::parse($po->date) : $today;
-            $daysAging = (int) $poDate->diffInDays($today);
-
-            // Traffic light classification
-            if ($daysAging <= 15) {
-                $status = 'green';
-                $statusLabel = 'Al corriente (≤15 días)';
-            } elseif ($daysAging <= 30) {
-                $status = 'yellow';
-                $statusLabel = 'Próximo a vencer (16-30 días)';
-            } else {
-                $status = 'red';
-                $statusLabel = 'Vencido (>30 días)';
+                $vendorGroups[$vendorId] = $this->makeVendorGroup($vendorId, $vendorName);
             }
 
             $projectName = $po->project ? $po->project->name : 'Sin Proyecto';
+            $poDate = $po->date ? \Carbon\Carbon::parse($po->date) : $today;
+            $daysSincePO = (int) $poDate->diffInDays($today);
 
-            $vendorGroups[$vendorId]['total'] += $remainingPOBalance;
-            $vendorGroups[$vendorId]['count']++;
-            $vendorGroups[$vendorId]['expenses'][] = [
+            $vendorGroups[$vendorId]['saldo_contrato_total'] += $remainingPOBalance;
+            $vendorGroups[$vendorId]['saldo_contrato_count']++;
+            $vendorGroups[$vendorId]['saldo_contrato'][] = [
                 'id' => 'po_' . $po->id,
+                'po_id' => $po->hashed_id,
                 'number' => $po->number ?? '',
                 'date' => $po->date,
                 'amount' => round($remainingPOBalance, 2),
+                'po_amount' => round((float) $po->amount, 2),
+                'po_paid_to_date' => round((float) $po->paid_to_date, 2),
                 'project_name' => $projectName,
                 'project_id' => $po->project_id,
-                'days_aging' => $daysAging,
-                'status' => $status,
-                'status_label' => $statusLabel,
-                'notes' => '(Saldo Contrato) ' . ($po->public_notes ?? ''),
-                'category' => 'Contrato / Orden de Compra',
+                'days_since_po' => $daysSincePO,
+                'notes' => $po->public_notes ?? '',
             ];
 
+            // Vendor total includes both aged expenses and contract balance
+            $vendorGroups[$vendorId]['total'] += $remainingPOBalance;
             $grandTotal += $remainingPOBalance;
+            $saldoContratoGrandTotal += $remainingPOBalance;
         }
 
         // Round vendor totals
         foreach ($vendorGroups as &$group) {
             $group['total'] = round($group['total'], 2);
+            $group['saldo_contrato_total'] = round($group['saldo_contrato_total'], 2);
         }
+        unset($group);
 
-        // Summary counts
+        // Summary counts — aging refers only to actual unpaid expenses
         $allExpenses = collect($vendorGroups)->pluck('expenses')->flatten(1);
+        $saldoContratoCount = collect($vendorGroups)->sum('saldo_contrato_count');
+
         $summary = [
             'grand_total' => round($grandTotal, 2),
             'total_count' => $allExpenses->count(),
@@ -175,11 +164,27 @@ class CuentasPorPagarController extends BaseController
             'green_total' => round($allExpenses->where('status', 'green')->sum('amount'), 2),
             'yellow_total' => round($allExpenses->where('status', 'yellow')->sum('amount'), 2),
             'red_total' => round($allExpenses->where('status', 'red')->sum('amount'), 2),
+            'saldo_contrato_total' => round($saldoContratoGrandTotal, 2),
+            'saldo_contrato_count' => $saldoContratoCount,
         ];
 
         return response()->json([
             'data' => array_values($vendorGroups),
             'summary' => $summary,
         ]);
+    }
+
+    private function makeVendorGroup(int $vendorId, string $vendorName): array
+    {
+        return [
+            'vendor_id' => $vendorId,
+            'vendor_name' => $vendorName,
+            'total' => 0.0,
+            'count' => 0,
+            'expenses' => [],
+            'saldo_contrato_total' => 0.0,
+            'saldo_contrato_count' => 0,
+            'saldo_contrato' => [],
+        ];
     }
 }

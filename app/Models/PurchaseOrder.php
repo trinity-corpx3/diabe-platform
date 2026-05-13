@@ -372,6 +372,11 @@ class PurchaseOrder extends BaseModel
         return $this->belongsTo(Expense::class);
     }
 
+    public function expenses(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Expense::class, 'purchase_order_id')->withTrashed();
+    }
+
     /** @return PurchaseOrderService  */
     public function service(): PurchaseOrderService
     {

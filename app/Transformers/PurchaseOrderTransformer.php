@@ -32,6 +32,7 @@ class PurchaseOrderTransformer extends EntityTransformer
 
     protected array $availableIncludes = [
         'expense',
+        'expenses',
         'vendor',
         'activities',
     ];
@@ -73,6 +74,13 @@ class PurchaseOrderTransformer extends EntityTransformer
         }
 
         return $this->includeItem($purchase_order->expense, $transformer, Expense::class);
+    }
+
+    public function includeExpenses(PurchaseOrder $purchase_order)
+    {
+        $transformer = new ExpenseTransformer($this->serializer);
+
+        return $this->includeCollection($purchase_order->expenses, $transformer, Expense::class);
     }
 
     public function includeVendor(PurchaseOrder $purchase_order)
