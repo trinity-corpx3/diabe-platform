@@ -42,11 +42,12 @@ class CuentasPorPagarController extends BaseController
             ->orderBy('date', 'asc')
             ->get();
 
-        // Fetch all Purchase Orders with balance > 0
+        // Fetch all Purchase Orders with balance > 0.
+        // Include DRAFT — Diabe uses "Borrador" as the normal state for active contracts.
         $purchaseOrders = PurchaseOrder::where('company_id', $company->id)
             ->where('balance', '>', 0)
             ->where('is_deleted', 0)
-            ->whereIn('status_id', [PurchaseOrder::STATUS_SENT, PurchaseOrder::STATUS_ACCEPTED, PurchaseOrder::STATUS_RECEIVED])
+            ->where('status_id', '!=', PurchaseOrder::STATUS_CANCELLED)
             ->with(['vendor', 'project'])
             ->get();
 

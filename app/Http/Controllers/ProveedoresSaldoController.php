@@ -46,14 +46,12 @@ class ProveedoresSaldoController extends BaseController
             ->with('project')
             ->get();
 
+        // Include DRAFT POs — Diabe uses "Borrador" as the normal state for
+        // active contracts. Only CANCELLED should be excluded.
         $purchaseOrders = PurchaseOrder::where('company_id', $company->id)
             ->whereIn('vendor_id', $vendorIds)
             ->where('is_deleted', 0)
-            ->whereIn('status_id', [
-                PurchaseOrder::STATUS_SENT,
-                PurchaseOrder::STATUS_ACCEPTED,
-                PurchaseOrder::STATUS_RECEIVED,
-            ])
+            ->where('status_id', '!=', PurchaseOrder::STATUS_CANCELLED)
             ->with('project')
             ->get();
 
