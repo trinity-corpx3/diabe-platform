@@ -70,6 +70,13 @@ class ProveedoresSaldoController extends BaseController
             $vendorExpenses = $expensesByVendor->get($vendor->id, collect());
             $vendorPOs = $posByVendor->get($vendor->id, collect());
 
+            // Active POs we know about — used to detect "linked" expenses.
+            // An unpaid expense linked to an active PO is already accounted for
+            // in the PO balance, so we must not also count it in pendiente_factura
+            // (would double-count) nor subtract it from saldo_contrato of a
+            // possibly-different project (would underreport that project's saldo).
+            $activePOIds = $vendorPOs->pluck('id')->all();
+
             $byProject = [];
 
             // Aggregate expenses by project
@@ -83,18 +90,26 @@ class ProveedoresSaldoController extends BaseController
 
                 $amount = (float) $expense->amount;
                 $isPaid = !empty($expense->payment_date);
+                $isLinkedToActivePO = !empty($expense->purchase_order_id)
+                    && in_array($expense->purchase_order_id, $activePOIds);
 
                 $byProject[$projectId]['facturado'] += $amount;
                 $byProject[$projectId]['expense_count']++;
 
                 if ($isPaid) {
                     $byProject[$projectId]['pagado'] += $amount;
-                } else {
+                } elseif (!$isLinkedToActivePO) {
+                    // Only loose unpaid expenses (no active PO backing them) add
+                    // to pendiente_factura. Linked-but-unpaid expenses live inside
+                    // the PO balance already.
                     $byProject[$projectId]['pendiente_factura'] += $amount;
                 }
             }
 
-            // Aggregate POs by project (contract amounts + remaining balance)
+            // Aggregate POs by project. saldo_contrato per project = sum of
+            // PO.balance for that project — PO.balance is maintained by
+            // ExpenseObserver as (amount - paid_to_date), which is exactly what
+            // we still owe on the contract.
             foreach ($vendorPOs as $po) {
                 $projectId = $po->project_id ?? 0;
                 $projectName = $po->project ? $po->project->name : 'Sin Proyecto';
@@ -103,19 +118,9 @@ class ProveedoresSaldoController extends BaseController
                     $byProject[$projectId] = $this->makeProjectRow($projectId, $projectName);
                 }
 
-                $poAmount = (float) $po->amount;
-                $poBalance = (float) $po->balance;
-
-                // Uncommitted balance = PO balance minus unpaid expenses already linked to this PO
-                $unpaidLinkedExpenses = $vendorExpenses
-                    ->where('purchase_order_id', $po->id)
-                    ->filter(fn ($e) => empty($e->payment_date))
-                    ->sum('amount');
-                $saldoContrato = max(0, $poBalance - $unpaidLinkedExpenses);
-
-                $byProject[$projectId]['contratado'] += $poAmount;
+                $byProject[$projectId]['contratado'] += (float) $po->amount;
                 $byProject[$projectId]['po_count']++;
-                $byProject[$projectId]['saldo_contrato'] += $saldoContrato;
+                $byProject[$projectId]['saldo_contrato'] += (float) $po->balance;
             }
 
             // Compute project-level saldo_pendiente
