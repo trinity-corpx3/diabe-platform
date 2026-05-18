@@ -67,6 +67,13 @@ class ExpenseObserver
             WebhookHandler::dispatch($event, $expense, $expense->company)->delay(0);
         }
 
+        // If the PO link changed, refresh the OLD PO too so its paid_to_date
+        // stops including this expense.
+        $originalPoId = $expense->getOriginal('purchase_order_id');
+        if ($originalPoId && $originalPoId != $expense->purchase_order_id) {
+            $this->recalcPurchaseOrder((int) $originalPoId);
+        }
+
         $this->updatePurchaseOrderBalance($expense);
     }
 
@@ -121,21 +128,31 @@ class ExpenseObserver
     private function updatePurchaseOrderBalance(Expense $expense): void
     {
         if ($expense->purchase_order_id) {
-            $purchaseOrder = PurchaseOrder::find($expense->purchase_order_id);
-            if ($purchaseOrder) {
-                // Sum all expenses for this PO that have a payment_date and are not deleted
-                $totalPaid = \DB::table('expenses')
-                    ->where('purchase_order_id', $purchaseOrder->id)
-                    ->where('payment_date', '!=', '')
-                    ->whereNotNull('payment_date')
-                    ->whereNull('deleted_at')
-                    ->where('is_deleted', 0)
-                    ->sum('amount');
-
-                $purchaseOrder->paid_to_date = (float) $totalPaid;
-                $purchaseOrder->balance = round($purchaseOrder->amount - $totalPaid, 2);
-                $purchaseOrder->saveQuietly();
-            }
+            $this->recalcPurchaseOrder((int) $expense->purchase_order_id);
         }
+    }
+
+    /**
+     * Recalculate paid_to_date and balance for a given PO from its actual
+     * linked, non-deleted, paid expenses.
+     */
+    private function recalcPurchaseOrder(int $purchaseOrderId): void
+    {
+        $purchaseOrder = PurchaseOrder::find($purchaseOrderId);
+        if (!$purchaseOrder) {
+            return;
+        }
+
+        $totalPaid = \DB::table('expenses')
+            ->where('purchase_order_id', $purchaseOrder->id)
+            ->where('payment_date', '!=', '')
+            ->whereNotNull('payment_date')
+            ->whereNull('deleted_at')
+            ->where('is_deleted', 0)
+            ->sum('amount');
+
+        $purchaseOrder->paid_to_date = (float) $totalPaid;
+        $purchaseOrder->balance = round($purchaseOrder->amount - $totalPaid, 2);
+        $purchaseOrder->saveQuietly();
     }
 }
