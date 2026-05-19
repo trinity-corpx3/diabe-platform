@@ -87,7 +87,11 @@ class DesignController extends BaseController
      */
     public function index(DesignFilters $filters)
     {
-        $designs = Design::filter($filters)->where('id', 5);
+        $designs = Design::filter($filters)
+            ->where(function ($q) {
+                $q->where('id', 5)
+                  ->orWhere('is_custom', true);
+            });
 
         return $this->listResponse($designs);
     }
