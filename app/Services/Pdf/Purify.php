@@ -35,6 +35,9 @@ class Purify
         // Template specific
         'ninja',
 
+        // Script (allowed for trusted single-tenant custom designs)
+        'script',
+
         // SVG Elements
         'svg', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline',
         'polygon', 'g', 'text', 'tspan', 'defs', 'use', 'title',
