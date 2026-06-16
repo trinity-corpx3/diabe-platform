@@ -1216,25 +1216,11 @@ class Design extends BaseDesign
             return $elements;
         }
 
-        if ($this->entity instanceof Quote) {
-            // User request: "solo saldo subtotal porfa", "solo dejar eso porfa"
-            $variables = \array_diff($variables, [
-                '$outstanding',
-                '$paid_to_date',
-                '$total',
-                '$amount',
-                '$quote.total',
-                '$balance_due',
-                '$partial_due'
-            ]);
-        }
-
-        if ($this->entity instanceof Credit) {
-            // We don't want to show Balanace due on the quotes.
-            if (in_array('$paid_to_date', $variables)) {
-                $variables = \array_diff($variables, ['$paid_to_date']);
-            }
-        }
+        // DIABE customization: Show ONLY $subtotal in all document totals.
+        // Client request: "solo saldo subtotal porfa, se confunden mis clientes"
+        $variables = array_filter($variables, function ($var) {
+            return $var === '$subtotal';
+        });
 
         foreach (['discount'] as $property) {
             $variable = sprintf('%s%s', '$', $property);
