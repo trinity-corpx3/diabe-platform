@@ -6,6 +6,7 @@ on:
     paths:
       - '**/Dockerfile'
       - '.github/workflows/docker-build.yml'
+  workflow_dispatch:
 
 jobs:
   build:
