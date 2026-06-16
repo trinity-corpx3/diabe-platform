@@ -1217,18 +1217,16 @@ class Design extends BaseDesign
         }
 
         if ($this->entity instanceof Quote) {
-            // We don't want to show Balanace due on the quotes.
-            if (in_array('$outstanding', $variables)) {
-                $variables = \array_diff($variables, ['$outstanding']);
-            }
-
-            if ($this->entity->partial > 0) {
-                $variables[] = '$partial_due';
-            }
-
-            if (in_array('$paid_to_date', $variables)) {
-                $variables = \array_diff($variables, ['$paid_to_date']);
-            }
+            // User request: "solo saldo subtotal porfa", "solo dejar eso porfa"
+            $variables = \array_diff($variables, [
+                '$outstanding',
+                '$paid_to_date',
+                '$total',
+                '$amount',
+                '$quote.total',
+                '$balance_due',
+                '$partial_due'
+            ]);
         }
 
         if ($this->entity instanceof Credit) {
