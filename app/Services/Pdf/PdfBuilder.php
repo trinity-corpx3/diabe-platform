@@ -1509,23 +1509,11 @@ class PdfBuilder
             return $elements;
         }
 
-        if ($this->service->config->entity instanceof Quote) {
-            // We don't want to show Balanace due on the quotes.
-            if (in_array('$outstanding', $variables)) {
-                $variables = \array_diff($variables, ['$outstanding']);
-            }
-
-            if ($this->service->config->entity->partial > 0) {
-                $variables[] = '$partial_due';
-            }
-        }
-
-        if ($this->service->config->entity instanceof Credit) {
-            // We don't want to show Balanace due on the quotes.
-            if (in_array('$paid_to_date', $variables)) {
-                $variables = \array_diff($variables, ['$paid_to_date']);
-            }
-        }
+        // DIABE customization: Show ONLY $subtotal in all document totals.
+        // Client request: "solo saldo subtotal porfa, se confunden mis clientes"
+        $variables = array_filter($variables, function ($var) {
+            return $var === '$subtotal';
+        });
 
         foreach (['discount'] as $property) {
             $variable = sprintf('%s%s', '$', $property);
