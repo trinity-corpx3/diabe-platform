@@ -56,7 +56,7 @@ Edita `resources/views/react/head.blade.php` (líneas 1-2) con los **nuevos hash
 
 ---
 
-## Paso 4: Commit y Push
+## Paso 4: Commit, Push y Tag de Release
 
 ```bash
 cd /ruta/a/diabe-platform
@@ -65,17 +65,23 @@ git commit -m "feat: Descripción del cambio"
 git push origin main
 ```
 
+El deploy se dispara **por tag**, no por push. Cuando quieras desplegar:
+
+```bash
+git tag -a vX.Y.Z -m "Descripción del release"
+git push origin vX.Y.Z
+```
+
 ---
 
-## Paso 5: Esperar el Rebuild en Dockploy
+## Paso 5: Esperar el Build en GitHub Actions y el Deploy en Dockploy
 
-Dockploy detecta el push a `main` y automáticamente:
+Al hacer push del tag:
 
-1. Clona el repo
-2. Ejecuta `docker build` (copia `public/react/` → `custom_public/react/` dentro del contenedor)
-3. Despliega el nuevo contenedor
+1. GitHub Actions (`docker-build.yml`) construye la imagen y la publica en `ghcr.io/trinity-corpx3/diabe-platform` con los tags `vX.Y.Z`, `latest` y el SHA del commit
+2. Dockploy (configurado "on tag") hace pull de la imagen y despliega el nuevo contenedor
 
-⏱️ Tiempo estimado: **2-3 minutos**
+⏱️ Tiempo estimado: **5-10 minutos** (build en Actions + pull/deploy)
 
 ---
 
