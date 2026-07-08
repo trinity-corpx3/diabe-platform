@@ -73,6 +73,8 @@ class PayrollController extends BaseController
                     'total_base' => 0.0,
                     'total_overtime' => 0.0,
                     'total_pay' => 0.0,
+                    'total_discounts' => 0.0,
+                    'total_net' => 0.0,
                     'worker_count' => 0,
                     'projects' => [],
                 ];
@@ -89,6 +91,8 @@ class PayrollController extends BaseController
                     'subtotal_base' => 0.0,
                     'subtotal_overtime' => 0.0,
                     'subtotal_total' => 0.0,
+                    'subtotal_discounts' => 0.0,
+                    'subtotal_net' => 0.0,
                     'workers' => [],
                 ];
             }
@@ -122,11 +126,17 @@ class PayrollController extends BaseController
             $byWeek[$weekKey]['projects'][$projectId]['subtotal_base'] += $baseWage;
             $byWeek[$weekKey]['projects'][$projectId]['subtotal_overtime'] += $overtimePay;
             $byWeek[$weekKey]['projects'][$projectId]['subtotal_total'] += $totalPay;
+            // Los agregados deben reflejar lo que realmente se paga: el bruto
+            // sin descuentos hacía que el total no cuadrara con la suma de netos.
+            $byWeek[$weekKey]['projects'][$projectId]['subtotal_discounts'] += $totalDescuentos;
+            $byWeek[$weekKey]['projects'][$projectId]['subtotal_net'] += $netPay;
             $byWeek[$weekKey]['projects'][$projectId]['worker_count']++;
 
             $byWeek[$weekKey]['total_base'] += $baseWage;
             $byWeek[$weekKey]['total_overtime'] += $overtimePay;
             $byWeek[$weekKey]['total_pay'] += $totalPay;
+            $byWeek[$weekKey]['total_discounts'] += $totalDescuentos;
+            $byWeek[$weekKey]['total_net'] += $netPay;
         }
 
         // Finalize: round totals, convert maps to arrays, count unique workers
@@ -134,12 +144,16 @@ class PayrollController extends BaseController
             $week['total_base'] = round($week['total_base'], 2);
             $week['total_overtime'] = round($week['total_overtime'], 2);
             $week['total_pay'] = round($week['total_pay'], 2);
+            $week['total_discounts'] = round($week['total_discounts'], 2);
+            $week['total_net'] = round($week['total_net'], 2);
 
             $uniqueWorkers = [];
             foreach ($week['projects'] as &$project) {
                 $project['subtotal_base'] = round($project['subtotal_base'], 2);
                 $project['subtotal_overtime'] = round($project['subtotal_overtime'], 2);
                 $project['subtotal_total'] = round($project['subtotal_total'], 2);
+                $project['subtotal_discounts'] = round($project['subtotal_discounts'], 2);
+                $project['subtotal_net'] = round($project['subtotal_net'], 2);
                 foreach ($project['workers'] as $w) {
                     $uniqueWorkers[$w['worker_name']] = true;
                 }
