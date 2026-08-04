@@ -61,7 +61,15 @@ class UpdateInvoiceRequest extends Request
         $rules['invitations'] = 'sometimes|bail|array';
         $rules['invitations.*.client_contact_id'] = 'bail|required|distinct';
 
-        $rules['discount'] = 'sometimes|numeric|max:99999999999999';
+        // Percent-mode discounts are capped at 100; when the request omits the
+        // flag, fall back to the invoice's stored mode.
+        $is_amount_discount = $this->has('is_amount_discount')
+            ? $this->boolean('is_amount_discount')
+            : (bool) $this->invoice->is_amount_discount;
+
+        $rules['discount'] = $is_amount_discount
+            ? 'sometimes|numeric|min:0|max:99999999999999'
+            : 'sometimes|numeric|min:0|max:100';
         $rules['project_id'] = ['bail', 'sometimes', new ValidProjectForClient($this->all())];
         $rules['tax_rate1'] = 'bail|sometimes|numeric';
         $rules['tax_rate2'] = 'bail|sometimes|numeric';
@@ -194,6 +202,8 @@ class UpdateInvoiceRequest extends Request
         return [
             'id' => ctrans('texts.locked_invoice'),
             'status_id' => ctrans('texts.locked_invoice'),
+            'discount.min' => 'El descuento no puede ser negativo',
+            'discount.max' => 'El porcentaje de descuento no puede exceder 100%',
         ];
     }
 }

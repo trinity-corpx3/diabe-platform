@@ -1216,11 +1216,16 @@ class Design extends BaseDesign
             return $elements;
         }
 
-        // DIABE customization: Show ONLY $subtotal in all document totals.
+        // DIABE customization: Show ONLY $subtotal in all document totals,
+        // plus the discount and discounted subtotal when a discount exists —
+        // otherwise the printed subtotal would not match the amount owed.
         // Client request: "solo saldo subtotal porfa, se confunden mis clientes"
-        $variables = array_filter($variables, function ($var) {
-            return $var === '$subtotal';
-        });
+        $variables = ['$subtotal'];
+
+        if ((float) $this->entity->discount != 0) {
+            $variables[] = '$discount';
+            $variables[] = '$net_subtotal';
+        }
 
         foreach (['discount'] as $property) {
             $variable = sprintf('%s%s', '$', $property);

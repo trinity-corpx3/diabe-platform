@@ -66,7 +66,10 @@ class StoreInvoiceRequest extends Request
         $rules['due_date'] = ['bail', 'sometimes', 'nullable', 'after:partial_due_date', Rule::requiredIf(fn () => strlen($this->partial_due_date ?? '') > 1), 'date'];
 
         $rules['line_items'] = ['bail', 'array'];
-        $rules['discount'] = 'sometimes|numeric|max:99999999999999';
+        // Percent-mode discounts (is_amount_discount absent/false) are capped at 100.
+        $rules['discount'] = $this->boolean('is_amount_discount')
+            ? 'sometimes|numeric|min:0|max:99999999999999'
+            : 'sometimes|numeric|min:0|max:100';
         $rules['tax_rate1'] = 'bail|sometimes|numeric';
         $rules['tax_rate2'] = 'bail|sometimes|numeric';
         $rules['tax_rate3'] = 'bail|sometimes|numeric';
@@ -179,7 +182,15 @@ class StoreInvoiceRequest extends Request
         }
 
         $input['lock_key'] = $key;
-        
+
         $this->replace($input);
+    }
+
+    public function messages()
+    {
+        return [
+            'discount.min' => 'El descuento no puede ser negativo',
+            'discount.max' => 'El porcentaje de descuento no puede exceder 100%',
+        ];
     }
 }
