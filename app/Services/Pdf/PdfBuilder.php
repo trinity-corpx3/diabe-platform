@@ -163,9 +163,32 @@ class PdfBuilder
 
             unset($temp); //releases memory immediately rather than at the end of the function
 
+            $this->styleRichTextTables($element);
+
         }
 
         return $this;
+    }
+
+    /**
+     * DIABE: tables typed in the rich-text editor (notes, terms, item
+     * descriptions) carry no CSS from the PDF designs, so they printed as
+     * loose text without borders. Inline defaults go first so any style the
+     * user set on the cell still wins.
+     */
+    private function styleRichTextTables(\DOMElement $container): void
+    {
+        $defaults = [
+            'table' => 'border-collapse: collapse; width: 100%; margin: 6px 0;',
+            'th' => 'border: 1px solid #9ca3af; padding: 4px 8px; text-align: left; vertical-align: top; font-weight: bold; background-color: #f3f4f6;',
+            'td' => 'border: 1px solid #9ca3af; padding: 4px 8px; text-align: left; vertical-align: top;',
+        ];
+
+        foreach ($defaults as $tag => $css) {
+            foreach ($container->getElementsByTagName($tag) as $node) {
+                $node->setAttribute('style', trim($css . ' ' . $node->getAttribute('style')));
+            }
+        }
     }
 
 
