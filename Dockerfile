@@ -1,4 +1,9 @@
-FROM invoiceninja/invoiceninja:5
+# Base FIJA: este Dockerfile solo encima app/, vistas, routes/api.php y
+# migraciones sobre la imagen upstream, así que la versión base debe coincidir
+# con nuestro fork. Con la etiqueta flotante ":5" un rebuild del 2026-11-03 tomó
+# 5.13.53 (sin routes/shop.php) y la app no arrancó. 5.13.27 es la base exacta
+# de v1.1.1 (capas verificadas). Subir de versión solo a propósito y probado.
+FROM invoiceninja/invoiceninja:5.13.27@sha256:9790c141c6de90bcca211e217a2a80c4b4f353f61ad4654fe899e305f38e4ce1
 
 # Switch to root to install and configure nginx
 USER root
